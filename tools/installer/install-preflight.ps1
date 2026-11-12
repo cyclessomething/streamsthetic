@@ -19,5 +19,64 @@ function Install-StreamstheticRuntime {
 }
 function Assert-StreamstheticCameraResult {
     param([int]$ExitCode)
-    if ($ExitCode -ne 0) { throw 'Streamsthetic camera setup did not finish. Approve the Windows administrator prompt and run setup again. App files may already be installed. Camera setup details are in %TEMP%\streamsthetic-install-camera.txt when available.' }
+    if ($ExitCode -ne 0) { throw 'Streamsthetic camera setup did not finish. App files may already be installed. Review the Windows error in %TEMP%\streamsthetic-install-camera.txt before retrying.' }
+}
+
+# Shared by the elevated worker and harmless native-fixture tests. File redirection avoids
+# PowerShell 5 treating native stderr as a terminating error under ErrorActionPreference=Stop.
+function Invoke-StreamstheticNativeStep {
+    param([string]$FilePath, [string[]]$Arguments, [string]$Stage, [string]$LogPath,
+        [ValidateRange(1, 120000)][int]$TimeoutMilliseconds = 120000)
+    $capture = Join-Path ([IO.Path]::GetTempPath()) ('streamsthetic-native-' + [Guid]::NewGuid().ToString('N'))
+    $stdout = $capture + '.stdout'; $stderr = $capture + '.stderr'
+    $process = $null; $code = $null; $timedOut = $false
+    Add-Content -LiteralPath $LogPath -Value "Stage: $Stage" -Encoding UTF8
+    try {
+        $process = Start-Process -FilePath $FilePath -ArgumentList $Arguments -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr -ErrorAction Stop
+        $null = $process.Handle # Retain the process handle so Windows PowerShell can retrieve its exit code.
+        if (-not $process.WaitForExit($TimeoutMilliseconds)) {
+            $timedOut = $true
+            Add-Content -LiteralPath $LogPath -Value "Timed out after $TimeoutMilliseconds ms; requesting process termination." -Encoding UTF8
+            $process.Kill()
+            if (-not $process.WaitForExit(5000)) { throw "$Stage timed out; process termination was not confirmed. Capture files will be retained." }
+            $code = $process.ExitCode
+            throw "$Stage timed out after $TimeoutMilliseconds ms. Details: $LogPath"
+        }
+        $code = $process.ExitCode
+        if ($code -ne 0) { throw "$Stage failed (native exit code $code). Details: $LogPath" }
+    } catch {
+        Add-Content -LiteralPath $LogPath -Value ($_ | Out-String) -Encoding UTF8
+        throw
+    } finally {
+        $captured = $true
+        # Harvest each stream independently, including after timeout or a failed Kill call.
+        foreach ($stream in @(@('stdout', $stdout), @('stderr', $stderr))) {
+            try {
+                Add-Content -LiteralPath $LogPath -Value ($stream[0] + ':') -Encoding UTF8 -ErrorAction Stop
+                if (Test-Path -LiteralPath $stream[1]) { Get-Content -LiteralPath $stream[1] -ErrorAction Stop | Add-Content -LiteralPath $LogPath -Encoding UTF8 -ErrorAction Stop }
+            } catch { $captured = $false; Write-Warning "Could not append $($stream[0]); capture retained at $($stream[1])." }
+        }
+        try {
+            $exitText = if ($null -eq $code) { 'unavailable' } else { [string]$code }
+            Add-Content -LiteralPath $LogPath -Value "Native exit code: $exitText; timed out=$timedOut" -Encoding UTF8 -ErrorAction Stop
+        } catch { $captured = $false }
+        $exited = $null -eq $process -or $process.HasExited
+        if ($captured -and $exited) {
+            # Exact per-call files only; useful evidence is removed only after successful harvesting.
+            Remove-Item -LiteralPath $stdout, $stderr -Force -ErrorAction SilentlyContinue
+        } else {
+            Write-Warning "Native capture files retained: $stdout ; $stderr"
+        }
+        if ($null -ne $process) { $process.Dispose() }
+    }
+}
+
+function Get-StreamstheticElevationFailure {
+    param([Exception]$Exception)
+    for ($cause = $Exception; $null -ne $cause; $cause = $cause.InnerException) {
+        if ($cause -is [ComponentModel.Win32Exception] -and $cause.NativeErrorCode -eq 1223) {
+            return 'Camera setup was canceled at the Windows administrator prompt. Run setup again and approve that prompt to install the cameras.'
+        }
+    }
+    return ('Could not start the elevated camera setup. Windows reported: ' + $Exception.Message)
 }

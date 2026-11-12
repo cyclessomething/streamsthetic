@@ -14,6 +14,12 @@ The beta has been built and tested on development machines and a limited set of 
 
 An extraction check proves that an installer contains the expected bytes. A synthetic receiver test proves behavior for its supplied input. Neither is a substitute for running the installed camera on a fresh PC.
 
+## GitHub reporting checks — 0.2.5
+
+The Windows draft helper passed 12 checks for the fixed GitHub destination, URL encoding, Unicode, allowed context fields and bounded long descriptions with a complete local fallback. Android passed 30 behavior checks in total, including its existing orientation and saved-choice checks plus draft encoding, connection-type filtering, length limits and complete-summary preservation. These are helper tests: they do not submit issues or prove browser, sharing or file-save behaviour on every device.
+
+An actual Windows **Continue on GitHub** click opened Firefox at the new-issue page with test text. Further automated browser inspection was blocked by the automation tool's unsupported Firefox URL checks; successful submission was not tested, and no issue was submitted. Android reporting still needs an on-device check of the browser handoff, optional sharing and saved-summary recovery. Build and lint success do not replace those checks.
+
 ## Clean Windows Sandbox result — 12 November 2026
 
 The actual offline installer was run in a new Windows 11 x64 Sandbox with no .NET SDK or runtime installed. Camera setup failed with access denied. A separate follow-up launched the installed app files successfully and ran the bundled USB tool, but that does not turn the failed installation into a pass.
@@ -35,6 +41,7 @@ Install the build prerequisites in [BUILD.md](BUILD.md), then run from the repos
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File android/tests/run-behavior-checks.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/github_report_selftest.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/session_selftest.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/installer_selftest.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/clean_windows_test_selftest.ps1

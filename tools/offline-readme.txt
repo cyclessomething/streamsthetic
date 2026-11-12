@@ -80,7 +80,11 @@ REQUIREMENTS
     frame rate or resolution. Performance depends on the phones, PC and local network.
 
 TROUBLESHOOTING
-  In the PC app, Report a problem saves a diagnostic report for you to review and share.
+  In either app, open Report a problem, describe the issue and choose Continue on GitHub.
+  Sign in, review the public issue draft and submit it to cyclessomething/streamsthetic.
+  The app does not submit it for you. Diagnostic logs are not attached automatically.
+  Save diagnostic report on Windows or Share diagnostic report on Android lets you
+  collect additional details separately. Review those files before sharing them.
 
   If the app cannot open, run Collect problem info.cmd from this package.
   This tool starts and closes a test copy of the PC app, runs the video component,

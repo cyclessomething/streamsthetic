@@ -22,6 +22,10 @@ Expect-Failure { Install-StreamstheticRuntime { 0 } { $false } } 'still unavaila
 Install-StreamstheticRuntime { 0 } { $true }
 Assert-StreamstheticCameraResult 0
 Expect-Failure { Assert-StreamstheticCameraResult 7 } 'camera setup did not finish'
+$canceled = Get-StreamstheticElevationFailure ([ComponentModel.Win32Exception]::new(1223))
+$denied = Get-StreamstheticElevationFailure ([ComponentModel.Win32Exception]::new(5))
+if ($canceled -notlike '*canceled at*' -or $denied -like '*approve*') { throw 'Elevation cancellation must not be confused with other Windows failures' }
+try { Assert-StreamstheticCameraResult 5 } catch { if ($_.Exception.Message -like '*Approve*') { throw 'Registration failure incorrectly blames administrator approval' } }
 Write-Output 'PASS: platform, media, runtime source, runtime exit/verification and camera failure decisions (no external actions)'
 
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('Streamsthetic-installer-' + [Guid]::NewGuid().ToString('N'))
@@ -42,6 +46,7 @@ $passed = $false
 try {
     & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoCamera -NoLaunch
     if (-not (Test-Path -LiteralPath (Join-Path $target 'installation.json'))) { throw 'Missing install receipt' }
+    if (-not (Test-Path -LiteralPath (Join-Path $target 'install-preflight.ps1'))) { throw 'Installed package is missing the shared native capture helper' }
     if ((Get-ItemProperty -LiteralPath $key).InstallLocation -ne $target) { throw 'Incorrect install registration' }
     if (-not (Test-Path -LiteralPath (Join-Path $desktop 'Streamsthetic.lnk'))) { throw 'Missing shortcut' }
     Set-Content -LiteralPath (Join-Path $package 'Streamsthetic.exe') -Value 'second version'
@@ -104,6 +109,78 @@ static class SetupFailureTest {
     $process = Start-Process -FilePath $failureExe -ArgumentList ('"' + $failureFolder + '"') -PassThru -Wait -WindowStyle Hidden
     if ($process.ExitCode) { throw 'Bootstrapper did not preserve failed-script details and non-success' }
     Write-Output 'PASS: bootstrapper captures failed-script error details and writes the diagnostic log'
+
+    # Real native stdout/stderr and exit propagation, without camera APIs or elevation.
+    $nativeSource = Join-Path $testRoot 'NativeFixture.cs'
+@'
+using System;
+static class NativeFixture {
+ static int Main(string[] args) {
+  Console.WriteLine("NATIVE_STDOUT_BEGIN");
+  Console.WriteLine(new string('x', 100000));
+  Console.Error.WriteLine("NATIVE_STDERR_MARKER");
+  if (args[0] == "hang") { Console.Error.WriteLine("PRE_TIMEOUT_HRESULT_0x80070005"); Console.Out.Flush(); Console.Error.Flush(); System.Threading.Thread.Sleep(30000); return 0; }
+  if (args[0] == "success") { Console.Error.WriteLine("Harmless warning"); return 0; }
+  Console.Error.WriteLine("Registration HRESULT 0x80070005"); return 5;
+ }
+}
+'@ | Set-Content -LiteralPath $nativeSource
+    $nativeExe = Join-Path $failureFolder 'NativeFixture.exe'
+    & $csc /nologo /target:exe /out:$nativeExe $nativeSource
+    if ($LASTEXITCODE) { throw 'Native fixture compilation failed' }
+    $nativeLog = Join-Path $failureFolder 'camera.log'
+    Invoke-StreamstheticNativeStep -FilePath $nativeExe -Arguments @('success') -Stage 'fixture registration' -LogPath $nativeLog
+    $warningLog = Get-Content -LiteralPath $nativeLog -Raw
+    if ($warningLog -notlike '*Harmless warning*' -or $warningLog -notlike '*Native exit code: 0*') { throw 'Successful stderr was lost or treated as failure' }
+    Expect-Failure { Invoke-StreamstheticNativeStep -FilePath $nativeExe -Arguments @('failure') -Stage 'fixture registration' -LogPath $nativeLog } 'native exit code 5'
+    $nativeDetails = Get-Content -LiteralPath $nativeLog -Raw
+    foreach ($expected in @('NATIVE_STDOUT_BEGIN', 'NATIVE_STDERR_MARKER', '0x80070005', 'Native exit code: 5', 'Stage: fixture registration')) {
+        if (-not $nativeDetails.Contains($expected)) { throw "Native log lost $expected" }
+    }
+    $timeoutLog = Join-Path $failureFolder 'timeout.log'
+    $timeoutWatch = [Diagnostics.Stopwatch]::StartNew()
+    Expect-Failure { Invoke-StreamstheticNativeStep -FilePath $nativeExe -Arguments @('hang') -Stage 'timeout fixture' -LogPath $timeoutLog -TimeoutMilliseconds 1000 } 'timed out'
+    $timeoutDetails = Get-Content -LiteralPath $timeoutLog -Raw
+    foreach ($expected in @('NATIVE_STDOUT_BEGIN', 'PRE_TIMEOUT_HRESULT_0x80070005', 'Timed out after 1000 ms', 'timed out=True')) {
+        if (-not $timeoutDetails.Contains($expected)) { throw "Timeout log lost $expected" }
+    }
+    if ($timeoutWatch.Elapsed.TotalSeconds -gt 10) { throw 'Timeout fixture exceeded its bounded wait' }
+    Write-Output 'PASS: timed-out native process preserves both output streams and timeout evidence'
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'installer/install-preflight.ps1') -Destination $failureFolder
+@'
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'install-preflight.ps1')
+$log = Join-Path $PSScriptRoot 'camera.log'
+try {
+ Invoke-StreamstheticNativeStep -FilePath (Join-Path $PSScriptRoot 'NativeFixture.exe') -Arguments @('failure') -Stage 'virtual camera registration' -LogPath $log
+} catch {
+ Write-Warning (Get-Content -LiteralPath $log -Raw)
+ Assert-StreamstheticCameraResult 1
+}
+'@ | Set-Content -LiteralPath (Join-Path $failureFolder 'install.ps1')
+    $nativeHarnessSource = Join-Path $testRoot 'NativeSetupTest.cs'
+@'
+using System;
+using System.IO;
+static class NativeSetupTest {
+ static int Main(string[] args) {
+  try { Setup.RunInstaller(args[0]); return 1; }
+  catch (InvalidOperationException ex) {
+   var log = File.ReadAllText(Path.Combine(args[0], "setup-error.txt"));
+   foreach (var token in new[] { "0x80070005", "NATIVE_STDOUT_BEGIN", "NATIVE_STDERR_MARKER", "Native exit code: 5", "virtual camera registration", "camera.log" })
+    if (!log.Contains(token)) return 2;
+   return ex.Message.Contains("0x80070005") && !log.Contains("Approve the Windows administrator prompt") ? 0 : 3;
+  }
+ }
+}
+'@ | Set-Content -LiteralPath $nativeHarnessSource
+    $nativeHarness = Join-Path $testRoot 'NativeSetupTest.exe'
+    & $csc /nologo /target:exe /main:NativeSetupTest /out:$nativeHarness /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Windows.Forms.dll "$root\tools\setup\Setup.cs" $nativeHarnessSource
+    if ($LASTEXITCODE) { throw 'Native setup harness compilation failed' }
+    $process = Start-Process -FilePath $nativeHarness -ArgumentList ('"' + $failureFolder + '"') -PassThru -WindowStyle Hidden
+    if (-not $process.WaitForExit(30000)) { $process.Kill(); throw 'Native capture propagation timed out' }
+    if ($process.ExitCode) { throw "Native camera failure did not reach setup log and message (test exit $($process.ExitCode))" }
+    Write-Output 'PASS: native stdout/stderr, HRESULT, stage, exit code and log path reach setup; successful stderr is not a failure'
     # A long-running child must not keep redirected installer pipes (and setup) alive.
     Set-Content -LiteralPath (Join-Path $failureFolder 'install.ps1') -Value "Start-Process powershell.exe -WindowStyle Hidden -ArgumentList '-NoProfile','-Command','Start-Sleep -Seconds 8'; exit 0"
     $successSource = Join-Path $testRoot 'SetupSuccessTest.cs'

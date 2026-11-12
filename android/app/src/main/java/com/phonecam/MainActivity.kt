@@ -373,12 +373,10 @@ class MainActivity : Activity() {
             .any { it.isUp && (it.name.startsWith("rndis") || it.name.startsWith("usb") || it.name.startsWith("ncm")) && it.inetAddresses.hasMoreElements() }
     } catch (_: Exception) { false }
 
-    /**
-     * "Report a problem" pop-up: what happened (your words) + automatic details. Sending opens the phone's share sheet
-     * (email, messages...); nothing leaves the phone until you pick where to send it.
-     */
+    /** Public GitHub draft uses only selected fields; full diagnostic sharing is a separate action. */
     private fun showReportDialog() {
         val crashFile = java.io.File(filesDir, PhoneCamApp.CRASH_FILE)
+        val savedSummary = java.io.File(filesDir, "github-report-summary.txt")
         val look = ui.look
         val note = android.widget.EditText(this).apply {
             hint = "What happened? What were you doing?"
@@ -396,20 +394,62 @@ class MainActivity : Activity() {
             background = ui.box(look.panel, look.stroke, look.panelRadius.coerceAtLeast(14), look.panelBorder)
             setPadding(ui.dp(20), ui.dp(18), ui.dp(20), ui.dp(16))
             addView(ui.body("Report a problem", 18f, R.color.ink, bold = true))
-            addView(ui.body(if (crashFile.exists()) "The last saved crash is included, along with settings and recent activity. Review connection details before sharing." else "The report includes recent activity, settings, phone model and connection details. Review it before sharing.", 12.5f),
+            addView(ui.body("Open a draft on GitHub with your description, app version, Android version, phone model and connection type. Sign in to GitHub, review the draft and submit it yourself. Reports are public: leave out pairing codes, addresses and private details. If the link needs a shorter description, the full summary is saved privately on this phone. Use Share saved GitHub summary to retrieve it; a later shortened report replaces that saved summary.", 12.5f),
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(4); bottomMargin = ui.dp(12) })
             addView(note, LinearLayout.LayoutParams(-1, -2))
         }
-        val dialog = android.app.AlertDialog.Builder(this).setView(card).create()
+        val dialog = android.app.AlertDialog.Builder(this).setView(android.widget.ScrollView(this).apply { addView(card) }).create()
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.InsetDrawable(android.graphics.drawable.ColorDrawable(0), ui.dp(14)))
-        card.addView(ui.primaryButton("Share report") {
-            dialog.dismiss()
+        val savedSummaryButton = ui.ghostButton("Share saved GitHub summary") {
+            try {
+                val text = android.util.AtomicFile(savedSummary).openRead().bufferedReader().use { it.readText() }
+                startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "Streamsthetic GitHub summary")
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }, "Share full summary with"))
+            } catch (_: Exception) {
+                showMessage("Summary unavailable", "The saved summary could not be opened or shared. Your current description is still in this dialog.", "OK") {}
+            }
+        }.apply { visibility = if (savedSummary.exists()) View.VISIBLE else View.GONE }
+        card.addView(ui.primaryButton("Continue on GitHub") {
+            val version = try { packageManager.getPackageInfo(packageName, 0).versionName } catch (_: Exception) { "Unknown" }
+            val draft = GitHubReport.create(note.text.toString(), version, Build.VERSION.RELEASE, Build.MODEL,
+                sessionMode ?: prefs.getString("Mode", null))
+            if (draft.shortened) {
+                val file = android.util.AtomicFile(savedSummary)
+                var stream: java.io.FileOutputStream? = null
+                try {
+                    stream = file.startWrite()
+                    stream.write(draft.fullBody.toByteArray(Charsets.UTF_8))
+                    file.finishWrite(stream)
+                    savedSummaryButton.visibility = View.VISIBLE
+                } catch (_: Exception) {
+                    file.failWrite(stream)
+                    showMessage("Could not save the full summary", "GitHub was not opened because the link would shorten your description. Your text is still here. Shorten it yourself or try again after freeing space on the phone.", "OK") {}
+                    return@primaryButton
+                }
+            }
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(draft.url)))
+            } catch (_: android.content.ActivityNotFoundException) {
+                showMessage("No browser available", "Install or enable a browser, then try again. Your description is still in this dialog.", "OK") {}
+            }
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(14) })
+        card.addView(savedSummaryButton)
+        card.addView(ui.body("Optional diagnostic sharing includes settings, recent logs, connection details and any saved crash. These may contain private information. Review the report before sharing it; do not post it publicly without checking it.", 12.5f),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(12) })
+        card.addView(ui.ghostButton("Share diagnostic report") {
             val text = buildReport(note.text.toString().trim(), crashFile)
-            startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_SUBJECT, "Streamsthetic problem report")
-                putExtra(Intent.EXTRA_TEXT, text)
-            }, "Share report with"))
+            try {
+                startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "Streamsthetic diagnostic report")
+                    putExtra(Intent.EXTRA_TEXT, text)
+                }, "Share diagnostic report with"))
+            } catch (_: android.content.ActivityNotFoundException) {
+                showMessage("No sharing app available", "Install or enable an app that can share text, then try again.", "OK") {}
+            }
         }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ui.dp(14) })
         card.addView(ui.ghostButton("Cancel") { dialog.dismiss() })
         dialog.show()
@@ -697,7 +737,7 @@ class MainActivity : Activity() {
                 ui.body(explanations.getValue("Requirements"), 13f)),
                 ui.settingsSection(
                     ui.body("Report a problem", 15f, R.color.ink, bold = true),
-                    ui.body("Share a problem report with a description, recent app activity, settings and the last saved crash. Reports may include connection details, but no video, audio or photos. Review the report before sharing.", 13f),
+                    ui.body("Open a public GitHub issue draft, then review and submit it yourself. Diagnostic sharing is optional and may include private connection details; review it before sharing.", 13f),
                     ui.ghostButton("Report a problem") { showReportDialog() })),
         )
         val container = android.widget.FrameLayout(this).apply {

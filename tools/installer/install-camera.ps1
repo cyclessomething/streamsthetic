@@ -2,6 +2,7 @@
 # Safe for any Windows user name, including names with an apostrophe (e.g. "Melissa's Pc"): the elevated steps are passed
 # encoded, not as a quoted command line (a quote in the path broke the old version and nothing was installed).
 $ErrorActionPreference = 'Continue'
+. (Join-Path $PSScriptRoot 'install-preflight.ps1')
 $source = Join-Path $PSScriptRoot 'vcam\VCamSampleSource.dll'
 $receiver = Join-Path $PSScriptRoot 'StreamstheticReceiver.exe'
 $clsidKeys = 3..6 | ForEach-Object { 'HKLM:\SOFTWARE\Classes\CLSID\{31621596-4208-4D72-9066-1F950707442' + $_ + '}' }
@@ -13,23 +14,35 @@ if (-not (Test-Path -LiteralPath $receiver)) { Write-Warning "The video componen
 
 $template = @'
 $ErrorActionPreference = 'Stop'
+$exitCode = 0
 try {
+    . '{{HELPER}}'
+    $elevated = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    "Camera setup worker; elevated=$elevated" | Set-Content -LiteralPath '{{LOG}}' -Encoding UTF8
+    Add-Content -LiteralPath '{{LOG}}' -Value 'Stage: copy camera component' -Encoding UTF8
     Stop-Service FrameServerMonitor, FrameServer -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force 'C:\ProgramData\PhoneCam\vcam' | Out-Null
     Copy-Item -LiteralPath '{{SOURCE}}' -Destination 'C:\ProgramData\PhoneCam\vcam' -Force
-    icacls 'C:\ProgramData\PhoneCam\vcam' /grant '*S-1-5-19:(OI)(CI)RX' '*S-1-5-18:(OI)(CI)RX' /T /Q | Out-Null
-    $p = Start-Process regsvr32 -ArgumentList '/s', 'C:\ProgramData\PhoneCam\vcam\VCamSampleSource.dll' -Wait -PassThru -WindowStyle Hidden
-    if ($p.ExitCode -ne 0) { throw "regsvr32 failed with exit code $($p.ExitCode)" }
+    Invoke-StreamstheticNativeStep -FilePath "$env:WINDIR\System32\icacls.exe" -Arguments @('C:\ProgramData\PhoneCam\vcam', '/grant', '*S-1-5-19:(OI)(CI)RX', '*S-1-5-18:(OI)(CI)RX', '/T', '/Q') -Stage 'camera file permissions' -LogPath '{{LOG}}'
+    Invoke-StreamstheticNativeStep -FilePath "$env:WINDIR\System32\regsvr32.exe" -Arguments @('/s', 'C:\ProgramData\PhoneCam\vcam\VCamSampleSource.dll') -Stage 'camera COM registration' -LogPath '{{LOG}}'
     Start-Service FrameServer, FrameServerMonitor -ErrorAction SilentlyContinue
-    & '{{RECEIVER}}' --install-camera
-    if ($LASTEXITCODE) { throw 'Could not install all four virtual camera devices.' }
+    Invoke-StreamstheticNativeStep -FilePath '{{RECEIVER}}' -Arguments @('--install-camera') -Stage 'virtual camera registration' -LogPath '{{LOG}}'
 }
-catch { ($_ | Out-String) | Set-Content -LiteralPath '{{LOG}}' }
+catch { $exitCode = 1; ($_ | Out-String) | Add-Content -LiteralPath '{{LOG}}' -Encoding UTF8 }
 finally { Start-Service FrameServer, FrameServerMonitor -ErrorAction SilentlyContinue }
+exit $exitCode
 '@
-$steps = $template.Replace('{{SOURCE}}', $source.Replace("'", "''")).Replace('{{RECEIVER}}', $receiver.Replace("'", "''")).Replace('{{LOG}}', $log.Replace("'", "''"))
+$helper = Join-Path $PSScriptRoot 'install-preflight.ps1'
+$steps = $template.Replace('{{SOURCE}}', $source.Replace("'", "''")).Replace('{{RECEIVER}}', $receiver.Replace("'", "''")).Replace('{{LOG}}', $log.Replace("'", "''")).Replace('{{HELPER}}', $helper.Replace("'", "''"))
 $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($steps))
-Start-Process powershell -Verb RunAs -Wait -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded
+try {
+    $worker = Start-Process powershell -Verb RunAs -Wait -PassThru -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded -ErrorAction Stop
+} catch {
+    $message = Get-StreamstheticElevationFailure $_.Exception
+    $message | Set-Content -LiteralPath $log -Encoding UTF8
+    Write-Warning $message
+    exit 1
+}
 
 $missing = @($clsidKeys | Where-Object { -not (Test-Path $_) })
 $installed = 'C:\ProgramData\PhoneCam\vcam\VCamSampleSource.dll'
@@ -37,10 +50,11 @@ $matches = (Test-Path $installed) -and ((Get-FileHash -LiteralPath $source).Hash
 $markers = @('SystemCamera', 'SystemCamera2', 'SystemCamera3', 'SystemCamera4' | Where-Object {
     (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\PhoneCam' -ErrorAction SilentlyContinue).$_ -ne 1
 })
-if ($missing.Count -eq 0 -and $matches -and $markers.Count -eq 0 -and -not (Test-Path $log)) {
+if ($worker.ExitCode -eq 0 -and $missing.Count -eq 0 -and $matches -and $markers.Count -eq 0) {
     Write-Output 'All four Streamsthetic cameras are installed. Open Streamsthetic to connect a phone.'
 } else {
-    Write-Warning 'Camera setup did not finish. Run setup again and approve the Windows administrator prompt.'
+    Add-Content -LiteralPath $log -Value "Verification: worker exit=$($worker.ExitCode); missing COM registrations=$($missing.Count); component matches=$matches; missing camera markers=$($markers.Count)" -Encoding UTF8
+    Write-Warning "Camera setup did not finish. Review the Windows error in $log before retrying."
     if (Test-Path $log) { Write-Warning ('Details: ' + (Get-Content $log -Raw)) }
     exit 1
 }

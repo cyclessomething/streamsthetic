@@ -5,8 +5,8 @@ namespace PhoneCam;
 
 /// <summary>
 /// "Report a problem": the user picks a recorded problem (newest preselected) or "Something else", how many minutes
-/// before it to include, and writes what they did; Streamsthetic packs that with its own records into one zip and opens
-/// an email to the report address with the zip shown in Explorer to attach.
+/// before it to include, and writes what they did. GitHub receives only an explicit summary; a diagnostic ZIP
+/// remains a separate local action, with optional configured email support.
 /// </summary>
 public partial class ReportWindow : Window
 {
@@ -30,12 +30,18 @@ public partial class ReportWindow : Window
         var newest = Diagnostics.RecentProblems().FirstOrDefault();
         ProblemList.SelectedIndex = newest != null && DateTime.Now - newest.Time < TimeSpan.FromMinutes(10) ? 0 : choices.Count - 1;
         var address = Diagnostics.ReportAddress;
-        SendButton.Content = address == null ? "Save report" : "Save report and open email";
+        SendButton.Content = address == null ? "Save diagnostic report" : "Save diagnostic report and open email";
         AddressText.Text = address == null
-            ? "The report is saved in Documents\\Streamsthetic reports. You can share the zip file with the person helping you. Nothing is uploaded or sent automatically."
-            : $"The report is saved in Documents\\Streamsthetic reports. Your email app opens a draft to {address}; review it and attach the zip before sending.";
+            ? "Diagnostic ZIPs stay in Documents\\Streamsthetic reports. They may contain private connection details or crash dumps. Review the files before attaching a ZIP to GitHub; it is never attached automatically."
+            : $"Diagnostic ZIPs stay in Documents\\Streamsthetic reports. The secondary action also opens an email draft to {address}. Review the files before attaching or sending; they may contain private connection details or crash dumps.";
         UpdateWindowText();
-        CheckPhone();
+        if (Environment.GetCommandLineArgs().Contains("--snapshot"))
+        {
+            IncludePhoneBox.IsEnabled = false;
+            IncludePhoneBox.IsChecked = false;
+            PhoneHint.Text = "Phone logs are only collected when saving a diagnostic ZIP.";
+        }
+        else CheckPhone();
     }
 
     private Problem? Chosen => (ProblemList.SelectedItem as Choice)?.Problem;
@@ -70,6 +76,33 @@ public partial class ReportWindow : Window
         PhoneHint.Text = connected ? "USB debugging connected; phone logs are available." : "Phone logs require USB debugging and authorization on the phone. For USB tethering or Wi-Fi, you can save phone logs separately from Report a problem in the phone app.";
     }
 
+    private void OnGitHub(object sender, RoutedEventArgs e)
+    {
+        var (from, to) = TimeWindow();
+        var version = Version.TryParse(Diagnostics.AppVersion.Split('+')[0], out var parsed) ? parsed : new Version(0, 0);
+        var draft = GitHubIssueDraft.Create(UserText.Text, version, Environment.OSVersion.Version,
+            System.Runtime.InteropServices.RuntimeInformation.OSArchitecture, from, to, Chosen?.Kind);
+        string? saved = null;
+        try
+        {
+            if (draft.DescriptionShortened)
+            {
+                Directory.CreateDirectory(ReportFolder);
+                saved = Path.Combine(ReportFolder, $"GitHub-draft-{DateTime.Now:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString("N")[..6]}.md");
+                File.WriteAllText(saved, draft.FullBody);
+            }
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(draft.Url.AbsoluteUri) { UseShellExecute = true });
+            ResultText.Text = saved == null
+                ? "GitHub opened a draft. Review it, sign in if needed, then submit the issue. No issue has been submitted by Streamsthetic."
+                : $"GitHub opened a shortened draft. Your complete description is saved in {saved}. Paste the remaining text into GitHub before submitting. No issue has been submitted by Streamsthetic.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            ResultText.Text = "Could not open the GitHub draft. Your description remains in this window. "
+                + (saved == null ? "" : $"The full draft is saved in {saved}. ") + ex.Message;
+        }
+    }
+
     private async void OnSend(object sender, RoutedEventArgs e)
     {
         SendButton.IsEnabled = false;
@@ -83,7 +116,7 @@ public partial class ReportWindow : Window
             var zip = await Task.Run(() => Diagnostics.BuildReport(text, problem, from, to, phone, ReportFolder));
             if (Diagnostics.ReportAddress == null)
             {
-                ResultText.Text = $"Report saved as {zip}. Share this zip file with the person helping you.";
+                ResultText.Text = $"Report saved as {zip}. Review its contents before attaching it manually to your GitHub issue. Nothing was uploaded.";
                 return;
             }
             ResultText.Text = $"Report saved as {Path.GetFileName(zip)}. Your email app is opening. Attach the file from the folder window and press Send.";

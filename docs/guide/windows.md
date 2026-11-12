@@ -56,6 +56,8 @@ The same category lets you reduce the phone's workload when it gets warm and **M
 
 ## Get help
 
-Use **Settings > Help > Report a problem** to describe an issue and save diagnostic information. Review the report before sharing it. For connection and performance checks, see [Troubleshooting](troubleshooting.md).
+Use **Settings > Help > Report a problem**, describe the issue, then choose **Continue on GitHub**. Sign in if needed, review the public draft and submit it yourself. Streamsthetic does not submit an issue automatically. The draft adds the app and Windows versions, architecture, selected problem type and time range; it does not attach logs or settings.
+
+**Save diagnostic report** separately saves a ZIP in **Documents\Streamsthetic reports**. Review it before sharing: it may contain private connection details or crash dumps. Long GitHub descriptions are shortened in the browser link, with the full draft saved locally at the location shown in the dialog. See [Privacy and diagnostic reports](privacy.md) or [Troubleshooting](troubleshooting.md).
 
 Related: [Guide and downloads](../../README.md) · [Android app](android.md) · [Multiple phones](multiple-phones.md)

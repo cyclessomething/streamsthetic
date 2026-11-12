@@ -1,6 +1,6 @@
 # Building Streamsthetic
 
-These instructions are for development. To use the app, download the Windows offline installer and Android APK from the [beta release](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.4-beta.1).
+These instructions are for development. To use the app, download the Windows offline installer and Android APK from the [beta release](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.5-beta.1).
 
 ## Tools
 

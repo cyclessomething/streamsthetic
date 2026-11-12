@@ -568,7 +568,7 @@
                             <Border Style="{StaticResource RowRule}">
                                 <StackPanel>
                                     <TextBlock><Hyperlink x:Name="ReportLink" Click="OnReportProblem">Report a problem</Hyperlink></TextBlock>
-                                    <TextBlock Text="Save a description of the problem and diagnostic logs" Style="{StaticResource RowHint}" />
+                                    <TextBlock Text="Open a GitHub issue draft or save diagnostics" Style="{StaticResource RowHint}" />
                                 </StackPanel>
                             </Border>
                             <Border Style="{StaticResource RowRule}">

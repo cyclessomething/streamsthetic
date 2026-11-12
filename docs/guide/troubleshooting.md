@@ -41,12 +41,14 @@ If the PC says its preview is paused because another app uses the camera, check 
 
 Higher settings are not guaranteed on every phone, PC or connection. Decoding and microphone-output changes in [Windows settings](windows.md) may require stopping and starting the connection.
 
-## Save a problem report
+## Report a problem
 
-1. On the PC, open **Settings → Help → Report a problem**, describe the problem and select the relevant time window.
-2. Choose **Save report**. The ZIP is saved under **Documents\Streamsthetic reports**. If a report email address is configured, the button instead saves the report and opens an email draft; attach the ZIP yourself.
-3. On Android, use **Settings → Help & requirements → Report a problem** to prepare a report for sharing.
-4. Review reports before sharing. They can contain settings, device and connection details, recent logs and crash information. Nothing is sent automatically by the PC report dialog.
+1. On the PC, open **Settings → Help → Report a problem**. On Android, open **Settings → Help & requirements → Report a problem**.
+2. Describe what happened and how to reproduce it. On Windows, select the relevant problem and time window.
+3. Choose **Continue on GitHub**. Sign in if needed, review the public draft, then submit it yourself. Streamsthetic does not submit an issue or attach diagnostics automatically.
+4. If diagnostic details are needed, use **Save diagnostic report** on Windows or **Share diagnostic report** on Android. Review the contents before sharing: settings, device and connection details, logs and crashes may contain private information.
+
+Windows diagnostic ZIPs are saved under **Documents\Streamsthetic reports**. If a report email address is configured, the action is **Save diagnostic report and open email**; attach the ZIP yourself. For long-description recovery and exactly what goes into a GitHub draft, see [Privacy and diagnostic reports](privacy.md).
 
 If the PC app cannot open, the offline ZIP includes **Collect problem info.cmd**. Finish active camera sessions first: it starts and closes a test app process, runs the video component and performs local network tests. It saves **Streamsthetic-problem-report.txt** on the Desktop. Review PC/user names, device/network details and logs before sharing.
 

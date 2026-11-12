@@ -35,6 +35,29 @@ public final class BehaviorChecks {
     }
 
     public static void main(String[] args) {
+        String description = "Camera freezes & reconnects? café 🎥\nSteps: rotate left";
+        String issue = GitHubReport.url(description, "0.2.4", "15", "Test phone", "wifi");
+        java.net.URI issueUri = java.net.URI.create(issue);
+        check(issueUri.getScheme().equals("https") && issueUri.getHost().equals("github.com")
+            && issueUri.getPath().equals("/cyclessomething/streamsthetic/issues/new"), "issue destination is fixed");
+        String[] query = issueUri.getRawQuery().split("&");
+        check(query.length == 2, "description cannot inject query parameters");
+        String body = java.net.URLDecoder.decode(query[1].substring("body=".length()), java.nio.charset.StandardCharsets.UTF_8);
+        check(body.contains(description) && body.contains("Connection: Wi-Fi"), "Unicode and query characters round-trip intact");
+        check(!body.contains("pairing_code=") && !body.contains("logcat") && !body.contains("serial="), "draft has no raw diagnostic fields");
+        String unknownMode = GitHubReport.url("", "1", "15", "Model", "secret-host:5555/code");
+        check(!unknownMode.contains("secret-host") && unknownMode.contains("Not+selected"), "connection mode is allowlisted, never copied raw");
+        String longIssue = GitHubReport.url("🎥&?".repeat(5000), "v".repeat(1000), "a".repeat(1000), "m".repeat(1000), "usb");
+        check(longIssue.length() <= GitHubReport.MAX_URL_LENGTH, "issue URL remains within explicit size bound");
+        String longBody = java.net.URLDecoder.decode(longIssue.substring(longIssue.indexOf("&body=") + 6), java.nio.charset.StandardCharsets.UTF_8);
+        check(!longBody.contains("\ufffd") && longBody.contains("Connection: USB debugging"), "truncation preserves Unicode and retains device details");
+        String fullDescription = "🎥&?".repeat(5000);
+        GitHubReport.Draft preserved = GitHubReport.create(fullDescription, "1", "15", "Model", "wifi");
+        check(preserved.shortened && preserved.fullBody.contains(fullDescription), "long draft retains the complete original summary for private saving");
+        check(java.net.URLDecoder.decode(preserved.url, java.nio.charset.StandardCharsets.UTF_8).contains("Description shortened"), "shortened browser draft explicitly identifies omitted text and recovery");
+        check(!GitHubReport.create(description,"1","15","Model","wifi").shortened, "short drafts do not request a saved recovery file");
+        check(GitHubReport.url(null,null,null,null,null).startsWith(GitHubReport.DESTINATION), "missing optional fields are safe");
+        check(issue.equals(GitHubReport.url(description,"0.2.4","15","Test phone","wifi")), "draft generation is deterministic with immutable inputs");
         int[] choices = {0, 10, 30, 60};
         for (int index = 0; index < choices.length; index++) {
             check(SavedChoice.indexOrDefault(choices, choices[index], 2) == index,

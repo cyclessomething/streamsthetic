@@ -2,7 +2,7 @@
 
 # Use the Android app
 
-Streamsthetic 0.2.4 beta turns an Android 11+ phone into a camera for your Windows PC. Start with [Connect your phone](connect.md) if you have not paired it yet.
+Streamsthetic 0.2.5 beta turns an Android 11+ phone into a camera for your Windows PC. Start with [Connect your phone](connect.md) if you have not paired it yet.
 
 ## Find your way around
 
@@ -66,9 +66,11 @@ Open **Settings → Permissions** and tap **Allow** beside the permission you ne
 
 ## Help & requirements
 
-Open **Settings → Help & requirements** to review device and connection requirements or choose **Report a problem**. Add a description, then choose **Share report** to open Android's sharing options.
+Open **Settings → Help & requirements** to review device and connection requirements or choose **Report a problem**. Add a description, then choose **Continue on GitHub**. Sign in if needed, review the public issue draft and submit it yourself. Streamsthetic does not submit an issue automatically.
 
-Reports include recent activity, settings, phone information and any saved crash. They may contain connection details, so review them before sharing. They do not include recorded video, audio or photos.
+The draft includes your description, app version, Android version, phone model and connection type. Logs and saved settings are not added. If the browser link shortens a long description, the full summary is saved privately on the phone; reopen **Report a problem** and choose **Share saved GitHub summary** to retrieve it. A later shortened report replaces that saved summary.
+
+**Share diagnostic report** is a separate, optional action. It shares recent activity, settings, phone information and any saved crash through Android's sharing options. These details may be private; review them before sharing publicly. See [Privacy and diagnostic reports](privacy.md).
 
 ## Related guides
 
