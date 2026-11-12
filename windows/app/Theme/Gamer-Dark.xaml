@@ -1,0 +1,97 @@
+<!-- Generated from one table (tools/theme_selftest.ps1 checks every theme defines the same keys). Theme: Gamer-Dark. See docs/DESIGN_PATTERNS.md "Themes". -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <DrawingBrush x:Key="PaperBrush" TileMode="Tile" Viewport="0,0,22,22" ViewportUnits="Absolute" Viewbox="0,0,22,22" ViewboxUnits="Absolute">
+        <DrawingBrush.Drawing><DrawingGroup>
+            <GeometryDrawing Brush="#0A0A0B"><GeometryDrawing.Geometry><RectangleGeometry Rect="0,0,22,22" /></GeometryDrawing.Geometry></GeometryDrawing>
+            <GeometryDrawing Brush="#2A2A2F"><GeometryDrawing.Geometry><EllipseGeometry Center="11,11" RadiusX="0.9" RadiusY="0.9" /></GeometryDrawing.Geometry></GeometryDrawing>
+        </DrawingGroup></DrawingBrush.Drawing>
+    </DrawingBrush>
+    <SolidColorBrush x:Key="PanelBrush" Color="#111113" />
+    <SolidColorBrush x:Key="PanelStrokeBrush" Color="#59FFE01B" />
+    <SolidColorBrush x:Key="HairlineBrush" Color="#2A2A2E" />
+    <SolidColorBrush x:Key="InkBrush" Color="#F5F5F0" />
+    <SolidColorBrush x:Key="Ink2Brush" Color="#9C9A97" />
+    <SolidColorBrush x:Key="Ink3Brush" Color="#5E5C59" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFEA5C" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#0A0A0B" />
+    <SolidColorBrush x:Key="LinkBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="TrackBrush" Color="#2A2A2E" />
+    <SolidColorBrush x:Key="ChipHoverBrush" Color="#24220D" />
+    <SolidColorBrush x:Key="ChipFillBrush" Color="#00FFFFFF" />
+    <SolidColorBrush x:Key="ChipStrokeBrush" Color="#99FFE01B" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#FFEA5C" />
+    <SolidColorBrush x:Key="OnPrimaryBrush" Color="#0A0A0B" />
+    <SolidColorBrush x:Key="HeaderBlockBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="OnHeaderBrush" Color="#0A0A0B" />
+    <SolidColorBrush x:Key="GoodBrush" Color="#FF5A3C" />
+    <SolidColorBrush x:Key="BadBrush" Color="#FF2E63" />
+    <SolidColorBrush x:Key="WaitBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="IdleBrush" Color="#8A8A90" />
+    <SolidColorBrush x:Key="OnStatusBrush" Color="#0A0A0B" />
+    <SolidColorBrush x:Key="Section1Brush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="Section2Brush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="Section3Brush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="Section4Brush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="Section5Brush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="SectionInkBrush" Color="#0A0A0B" />
+    <SolidColorBrush x:Key="Panel1Brush" Color="#111113" />
+    <SolidColorBrush x:Key="Panel2Brush" Color="#111113" />
+    <SolidColorBrush x:Key="Panel3Brush" Color="#111113" />
+    <SolidColorBrush x:Key="Panel4Brush" Color="#111113" />
+    <SolidColorBrush x:Key="Panel5Brush" Color="#111113" />
+    <SolidColorBrush x:Key="RowLensBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowResolutionBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowFpsBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowQualityBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowFocusBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowWbBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowFlickerBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowStabBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowThemeBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="RowAppearanceBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="SliderZoomBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="SliderBrightnessBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="SliderReportBrush" Color="#FFE01B" />
+    <SolidColorBrush x:Key="ReadoutHue1Brush" Color="#F5F5F0" />
+    <SolidColorBrush x:Key="ReadoutHue2Brush" Color="#F5F5F0" />
+    <SolidColorBrush x:Key="ReadoutHue3Brush" Color="#F5F5F0" />
+    <CornerRadius x:Key="PanelCorner">0</CornerRadius>
+    <CornerRadius x:Key="ChipCorner">0</CornerRadius>
+    <CornerRadius x:Key="ButtonCorner">0</CornerRadius>
+    <Thickness x:Key="PanelBorder">1</Thickness>
+    <Thickness x:Key="ChipBorder">1</Thickness>
+    <Thickness x:Key="HeaderIndent">10,0,0,0</Thickness>
+    <x:Null x:Key="PanelEffect" />
+    <x:Null x:Key="PanelEffectLight" />
+    <x:Null x:Key="ChipEffect" />
+    <FontFamily x:Key="LabelFont">pack://application:,,,/Fonts/#IBM Plex Mono</FontFamily>
+    <FontFamily x:Key="TitleFont">pack://application:,,,/Fonts/#Chakra Petch</FontFamily>
+    <FontFamily x:Key="ChipFont">pack://application:,,,/Fonts/#Chakra Petch</FontFamily>
+    <FontFamily x:Key="ReadoutFont">pack://application:,,,/Fonts/#Chakra Petch</FontFamily>
+    <FontFamily x:Key="WordmarkFont">pack://application:,,,/Fonts/#Chakra Petch</FontFamily>
+    <sys:Double x:Key="LabelSize">11</sys:Double>
+    <sys:Double x:Key="TitleSize">13</sys:Double>
+    <sys:Double x:Key="ReadoutSize">40</sys:Double>
+    <sys:Double x:Key="ReadoutLine">42</sys:Double>
+    <sys:Double x:Key="WordmarkSize">28</sys:Double>
+    <FontWeight x:Key="TitleWeight">SemiBold</FontWeight>
+    <FontWeight x:Key="ReadoutWeight">Bold</FontWeight>
+    <sys:Boolean x:Key="UpperCase">True</sys:Boolean>
+    <Visibility x:Key="AccentBarVisibility">Visible</Visibility>
+    <Visibility x:Key="IconVisibility">Collapsed</Visibility>
+    <Visibility x:Key="BracketVisibility">Visible</Visibility>
+    <Visibility x:Key="ViewfinderVisibility">Visible</Visibility>
+    <Visibility x:Key="StarVisibility">Visible</Visibility>
+    <Visibility x:Key="ArrowVisibility">Visible</Visibility>
+    <Visibility x:Key="TicksVisibility">Collapsed</Visibility>
+    <sys:String x:Key="ArrowGlyph">&#x2198;</sys:String>
+    <sys:String x:Key="Icon1">&#xE839;</sys:String>
+    <sys:String x:Key="Icon2">&#xE722;</sys:String>
+    <sys:String x:Key="Icon3">&#xE7AD;</sys:String>
+    <sys:String x:Key="Icon4">&#xE91B;</sys:String>
+    <sys:String x:Key="Icon5">&#xE713;</sys:String>
+</ResourceDictionary>

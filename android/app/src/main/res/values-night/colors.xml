@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark colour tokens, same as the PC app's Theme/Dark.xaml. -->
+<resources>
+    <color name="paper">#0F1011</color>
+    <color name="panel">#17191B</color>
+    <color name="hairline">#2A2C2F</color>
+    <color name="ink">#F1F1F1</color>
+    <color name="ink2">#9C9A97</color>
+    <color name="ink3">#5E5C59</color>
+    <color name="accent">#FE5921</color>
+    <color name="on_accent">#1B1D1F</color>
+    <color name="track">#2A2C2F</color>
+    <color name="good">#2BB673</color>
+</resources>

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <Version>0.2.4</Version>
+    <AssemblyName>Streamsthetic</AssemblyName>
+    <ApplicationIcon>..\..\assets\icon\Streamsthetic.ico</ApplicationIcon>
+    <UseWindowsForms>true</UseWindowsForms> <!-- only for the tray icon (NotifyIcon); WPF has none -->
+    <!-- Application.ThemeMode (Fluent) is marked experimental in WPF -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WinForms and WPF share type names (Button, Application, ...): keep WinForms out of the implicit usings -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <!-- bundled typefaces (all SIL Open Font License, licences beside the files): docs/DESIGN_PATTERNS.md "Typography" -->
+  <ItemGroup>
+    <Resource Include="..\..\assets\icon\Streamsthetic.ico" Link="Streamsthetic.ico" />
+    <Resource Include="Fonts\*.ttf" />
+    <None Include="Fonts\*-OFL.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.6.0" />
+  </ItemGroup>
+
+</Project>

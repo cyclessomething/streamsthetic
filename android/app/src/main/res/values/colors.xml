@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Light colour tokens, same as the PC app's Theme/Light.xaml (docs/DESIGN_PATTERNS.md). values-night has the dark set. -->
+<resources>
+    <color name="paper">#F4F2EC</color>
+    <color name="panel">#FCFBF8</color>
+    <color name="hairline">#E2DED6</color>
+    <color name="ink">#1B1D1F</color>
+    <color name="ink2">#6E6B67</color>
+    <color name="ink3">#A9A59F</color>
+    <color name="accent">#FE5921</color>
+    <color name="on_accent">#1B1D1F</color>
+    <color name="track">#E7E3DB</color>
+    <color name="good">#1F9D62</color>
+</resources>

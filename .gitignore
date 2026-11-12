@@ -1,0 +1,30 @@
+*.mkv
+*.mp4
+*.csv
+*.csv
+windows/third_party/
+windows/vcam/x64/
+windows/vcam/*/x64/
+windows/vcam/packages/
+windows/vcam/.vs/
+tools/testdata/
+windows/receiver/x64/
+windows/app/bin/
+windows/app/obj/
+dist/
+windows/receiver/*/x64/
+tools/test-signing.pfx
+# Private design references and signing material must never be published with the source.
+UI examples/
+*.keystore
+*.jks
+*.p12
+*.pfx
+# Local development notes, diagnostics and generated Python files are never public assets.
+state/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.*
+!.env.example

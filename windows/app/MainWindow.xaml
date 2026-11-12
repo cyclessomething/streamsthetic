@@ -1,0 +1,607 @@
+<Window Icon="Streamsthetic.ico" x:Class="PhoneCam.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:skin="clr-namespace:PhoneCam"
+        Title="Streamsthetic" Width="1240" Height="880" MinWidth="1120" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="{StaticResource SansFont}"
+        Background="{DynamicResource PaperBrush}">
+    <!-- Instrument-panel layout (docs/DESIGN_PATTERNS.md): header bar, three columns of numbered panels (left: link, phone
+         camera, orientation; middle: live view, readouts, Start; right: picture, app), footer strip. The look (colors, corners,
+         fonts, icons, text case) comes from the active theme (Theme/*.xaml); text here is written in natural case.
+         Taller than the screen: the content scrolls. -->
+    <Grid x:Name="RootGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ============ header bar ============ -->
+            <Grid Height="76" Background="{DynamicResource PanelBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Border Grid.ColumnSpan="3" BorderBrush="{DynamicResource HairlineBrush}" BorderThickness="0,0,0,1" />
+                <Border Background="{DynamicResource HeaderBlockBrush}" Width="232">
+                    <!-- Streamsthetic is long: the wordmark shrinks to fit the block, never grows -->
+                    <Viewbox StretchDirection="DownOnly" Stretch="Uniform" Margin="12,0"><TextBlock Text="STREAMSTHETIC" Style="{StaticResource Wordmark}" /></Viewbox>
+                </Border>
+                <!-- title = the phone in use (the wordmark is already in the block) -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="24,0,0,0">
+                    <TextBlock Text="Phone  ·  Windows virtual camera" Style="{StaticResource HeaderKey}" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="PhoneText" Text="No phone connected" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource InkBrush}" />
+                        <TextBlock Text=" /" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,8,0">
+                    <Border BorderBrush="{DynamicResource HairlineBrush}" BorderThickness="1,0,0,0" Padding="20,0" Width="190">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Status" Style="{StaticResource HeaderKey}" />
+                            <Border x:Name="StatusChip" Style="{StaticResource StatusChip}" Background="{DynamicResource IdleBrush}">
+                                <TextBlock x:Name="StatusChipText" Text="Stopped" Style="{StaticResource MonoLabel}" FontWeight="SemiBold"
+                                           FontSize="11" Foreground="{DynamicResource OnStatusBrush}" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <Border BorderBrush="{DynamicResource HairlineBrush}" BorderThickness="1,0,0,0" Padding="20,0" Width="130">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Link" Style="{StaticResource HeaderKey}" />
+                            <TextBlock x:Name="LinkText" Text="USB" Style="{StaticResource MonoValue}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+                        </StackPanel>
+                    </Border>
+                    <Border BorderBrush="{DynamicResource HairlineBrush}" BorderThickness="1,0,0,0" Padding="20,0" Width="130">
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Runtime" Style="{StaticResource HeaderKey}" />
+                            <TextBlock x:Name="RuntimeText" Text="00:00:00" Style="{StaticResource MonoValue}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <!-- ============ main area: live view at the left, settings in tabs at the right ============ -->
+            <Grid Grid.Row="1" Margin="24,20,24,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="400" />
+                </Grid.ColumnDefinitions>
+
+                <!-- middle column: live view -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <StackPanel Margin="0,0,24,0">
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Ellipse x:Name="StatusDot" Width="10" Height="10" Margin="0,0,10,0" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1">
+                            <TextBlock x:Name="StatusText" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource InkBrush}" />
+                            <TextBlock x:Name="DetailText" Style="{StaticResource Body}" Margin="0,2,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- live preview: the picture as apps receive it (turned and fitted); black in every theme -->
+                    <Border x:Name="PreviewBox" CornerRadius="{DynamicResource PanelCorner}" Background="#0D0D0E" ClipToBounds="True"
+                            BorderBrush="{DynamicResource PanelStrokeBrush}" BorderThickness="{DynamicResource PanelBorder}">
+                        <Grid>
+                            <Viewbox Stretch="Uniform">
+                                <Grid Width="1600" Height="900" />
+                            </Viewbox>
+                            <Image x:Name="PreviewImage" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                            <TextBlock x:Name="PreviewHint" Foreground="#9C9A97" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                       TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24"
+                                       Text="The picture appears here while Streamsthetic is running." />
+                            <TextBlock x:Name="PreviewWarn" Foreground="#C9A66B" FontFamily="{StaticResource MonoFont}" FontSize="11" TextWrapping="Wrap" TextAlignment="Center"
+                                       HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="40,0,40,68" Visibility="Collapsed" />
+                            <Button x:Name="PreviewAnywayButton" Content="Show preview anyway" Style="{StaticResource GhostButton}" Click="OnShowPreviewAnyway"
+                                    Foreground="#E8E6E3" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,28" Visibility="Collapsed"
+                                    AutomationProperties.Name="Show the preview even though another app is using the camera" />
+                            <!-- viewfinder corners -->
+                            <Grid Visibility="{DynamicResource ViewfinderVisibility}" IsHitTestVisible="False">
+                                <Path Data="M0,14 L0,0 L14,0" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Margin="12" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                                <Path Data="M0,0 L14,0 L14,14" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Margin="12" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                                <Path Data="M0,0 L0,14 L14,14" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Margin="12" HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+                                <Path Data="M14,0 L14,14 L0,14" Stroke="{DynamicResource AccentBrush}" StrokeThickness="2" Margin="12" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                                <TextBlock Text="Live view" FontFamily="{StaticResource MonoFont}" FontSize="10.5" Foreground="#9C9A97"
+                                           HorizontalAlignment="Left" VerticalAlignment="Top" Margin="34,12,0,0" Style="{StaticResource CaseText}" />
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <!-- readouts -->
+                    <Grid Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border BorderBrush="{DynamicResource HairlineBrush}" BorderThickness="0,0,1,0" Padding="0,0,16,0">
+                            <StackPanel>
+                                <TextBlock Text="Frame rate" Style="{StaticResource MonoLabel}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <TextBlock x:Name="FpsReadout" Text="--" Style="{StaticResource Readout}" />
+                                    <TextBlock Text="fps" Style="{StaticResource ReadoutUnit}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="1" BorderBrush="{DynamicResource HairlineBrush}" BorderThickness="0,0,1,0" Padding="16,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Delay" Style="{StaticResource MonoLabel}" />
+                                    <TextBlock Style="{StaticResource InfoIcon}"
+                                               ToolTip="Estimated time from capture on the phone to delivery on this PC. When no app is using the camera, this measures decoding instead. It does not include the display or network delay added by your calling or streaming app." />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                    <TextBlock x:Name="LatencyReadout" Text="--" Style="{StaticResource Readout}" />
+                                    <TextBlock Text="ms" Style="{StaticResource ReadoutUnit}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Grid.Column="2" Margin="16,0,0,0">
+                            <TextBlock Text="Format" Style="{StaticResource MonoLabel}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <TextBlock x:Name="FormatReadout" Text="--" Style="{StaticResource Readout}" />
+                                <TextBlock x:Name="FormatUnit" Text="" Style="{StaticResource ReadoutUnit}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <Button x:Name="StartButton" AutomationProperties.Name="Start or stop Streamsthetic" Content="Start" Margin="0,18,0,0" Style="{StaticResource PrimaryButton}" Click="OnStartStop" />
+                    <TextBlock x:Name="CameraHint" Text="Connect a phone to adjust its camera settings." Style="{StaticResource Body}" Margin="0,10,0,0" />
+                    <Button x:Name="FixButton" Content="Retry USB authorization" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Visibility="Collapsed" Click="OnFixUsb"
+                            ToolTip="Restarts Streamsthetic's USB helper so your phone shows its Allow USB debugging question again." />
+                    <TextBlock x:Name="CameraNameHint" Style="{StaticResource Body}" Margin="0,4,0,0"
+                               Text="While Streamsthetic is running, choose &quot;Streamsthetic (Windows Virtual Camera)&quot; as the camera in OBS, Discord or any other app." />
+                </StackPanel>
+                </ScrollViewer>
+
+
+                <!-- settings: tabs, each holding the numbered category panels (same idea as Elgato Studio's Recording / Device tabs) -->
+                <TabControl x:Name="MainTabs" Grid.Column="1" Style="{StaticResource SettingsTabs}">
+                    <TabItem Header="Camera">
+                        <StackPanel Margin="0,14,0,0">
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="01"
+                                            skin:Skin.SectionBrush="{DynamicResource Section1Brush}" skin:Skin.PanelFill="{DynamicResource Panel1Brush}" skin:Skin.Glyph="{DynamicResource Icon1}">
+                        <HeaderedContentControl.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Connection" Style="{StaticResource PanelTitle}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Connect by USB tethering or Wi-Fi. USB tethering needs a data cable and no pairing code. Wi-Fi needs both devices on the same local network and a matching six-digit pairing code. USB debugging is an optional alternative under Advanced. Video stays on the local connection." />
+                                                            <Button x:Name="ConnToggle" Content="&#x25BE;" Click="OnToggleConnection" Style="{StaticResource GhostButton}" Padding="8,0" Margin="8,0,0,0"
+                                        AutomationProperties.Name="Show or hide the connection settings" ToolTip="Hide or show the connection settings" Visibility="Collapsed" />
+                                <TextBlock x:Name="ConnSummary" Style="{StaticResource RowHint}" Margin="10,0,0,0" VerticalAlignment="Center" Visibility="Collapsed" />
+                            </StackPanel>
+                        </HeaderedContentControl.Header>
+                        <StackPanel x:Name="ConnectionBody">
+                            <RadioButton x:Name="TetherOption" Content="USB connection" GroupName="Link" IsChecked="True" Checked="OnLinkChanged" />
+                            <TextBlock Text="Plug in the cable and turn on USB tethering on the phone. No code needed." Style="{StaticResource RowHint}" Margin="28,0,0,8" />
+                            <RadioButton x:Name="WifiOption" Content="Wi-Fi" GroupName="Link" Checked="OnLinkChanged" />
+                            <StackPanel x:Name="CodePanel" Margin="28,6,0,0" Visibility="Collapsed">
+                                <TextBlock Text="Pair your phone" Style="{StaticResource MonoLabel}" Margin="0,0,0,6" />
+                                <Border x:Name="PairedChip" CornerRadius="6" Padding="10,6" HorizontalAlignment="Left" Margin="0,0,0,8" Background="{DynamicResource ChipFillBrush}">
+                                    <StackPanel>
+                                        <TextBlock x:Name="PairedText" Style="{StaticResource RowHint}" TextWrapping="Wrap" />
+                                        <Button x:Name="ForgetButton" Content="Forget paired phones" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Margin="0,6,0,0" Click="OnForgetPhones" Visibility="Collapsed"
+                                                ToolTip="Removes remembered phones from this PC. Pairing codes on the phones stay valid. To revoke access, create a new pairing code on the phone." />
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Style="{StaticResource RowHint}" TextWrapping="Wrap" Margin="0,0,0,8"
+                                           Text="On your phone, choose Wi-Fi, tap Scan QR code from the PC and scan this code. Then press Start on the phone. Pairing is saved for future connections." />
+                                <Border Background="White" Padding="8" HorizontalAlignment="Left" CornerRadius="6" Margin="0,0,0,10">
+                                    <Image x:Name="QrImage" Width="150" Height="150" RenderOptions.BitmapScalingMode="NearestNeighbor"
+                                           AutomationProperties.Name="QR code for pairing the phone" />
+                                </Border>
+                                <TextBlock Text="Or type the code shown on the phone" Style="{StaticResource MonoLabel}" Margin="0,0,0,6" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox x:Name="CodeBox" AutomationProperties.Name="Pairing code" Width="140" MaxLength="6" HorizontalAlignment="Left"
+                                             FontFamily="{StaticResource MonoFont}" FontSize="15" PreviewTextInput="OnCodeTyping" TextChanged="OnCodeChanged"
+                                             DataObject.Pasting="OnCodePasting" KeyDown="OnCodeKey" />
+                                    <Button x:Name="CodeSaveButton" Content="Use this code" Margin="8,0,0,0" Padding="12,4" Click="OnUseCode" IsEnabled="False" AutomationProperties.Name="Use this pairing code" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource RowHint}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                           Text="On the phone, tap Show pairing code, then type the 6 digits here. The picture above changes to match." />
+                                <TextBlock x:Name="CodeSavedNote" Style="{StaticResource RowHint}" Margin="0,4,0,0" Visibility="Collapsed" />
+                            </StackPanel>
+                            <Button x:Name="AdvancedToggle" Content="Advanced  &#x25BE;" Click="OnToggleAdvanced" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Margin="0,10,0,0"
+                                    AutomationProperties.Name="Show advanced connection options" ToolTip="Shows USB debugging, for advanced users." />
+                            <StackPanel x:Name="AdvancedPanel" Visibility="Collapsed" Margin="0,6,0,0">
+                                <RadioButton x:Name="UsbOption" Content="USB debugging (advanced)" GroupName="Link" Checked="OnLinkChanged" />
+                                <TextBlock Text="For advanced users. Needs USB debugging on the phone. The phone app has a step-by-step guide." Style="{StaticResource RowHint}" Margin="28,0,0,8" />
+                                <StackPanel x:Name="AutoStartPanel" Orientation="Horizontal" Margin="28,2,0,4">
+                                    <CheckBox x:Name="AutoStartBox" Content="Start when plugged in" Click="OnAutoStartChanged" />
+                                    <TextBlock Style="{StaticResource InfoIcon}"
+                                               ToolTip="Starts the phone app and PC camera when an authorized USB debugging connection is detected. Unlock the phone first. Unplugging stops this camera, whether this option is on or off." />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </HeaderedContentControl>
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="02"
+                                            skin:Skin.SectionBrush="{DynamicResource Section2Brush}" skin:Skin.PanelFill="{DynamicResource Panel2Brush}" skin:Skin.Glyph="{DynamicResource Icon2}">
+                        <HeaderedContentControl.Header>
+                            <Grid>
+                                <TextBlock Text="Phone camera" Style="{StaticResource PanelTitle}" HorizontalAlignment="Left" />
+                                <Button Style="{StaticResource ResetButton}" Click="OnResetCamera" IsEnabled="{Binding IsEnabled, ElementName=CameraPanel}"
+                                        AutomationProperties.AutomationId="ResetCameraButton" AutomationProperties.Name="Reset phone camera settings"
+                                        ToolTip="Back to Streamsthetic's defaults: main lens at 1x, 1080p, 60 fps, 20 Mbps, auto-rotate on. Changing resolution briefly interrupts the picture." />
+                            </Grid>
+                        </HeaderedContentControl.Header>
+                        <StackPanel x:Name="CameraPanel" IsEnabled="False">
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Lens" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Choose which phone camera to use. The choices depend on your phone. Main is a good starting point for most uses. Wide fits more of the room in. Tele zooms in from further away. Front is the selfie camera. Switching cameras briefly interrupts the picture." /></StackPanel><TextBlock Text="Which phone camera to use" Style="{StaticResource RowHint}" /></StackPanel><ComboBox x:Name="LensBox" AutomationProperties.Name="Lens" Grid.Column="1" Style="{StaticResource Dropdown}" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+
+                            <Border Style="{StaticResource RowRule}"><Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Zoom" Style="{StaticResource MonoLabel}" />
+                                    <TextBlock Style="{StaticResource InfoIcon}"
+                                               ToolTip="Zoom in or out smoothly. On a phone with several back cameras, it switches to the wide or telephoto camera by itself where it can. Beyond the longest optical zoom of your phone (or on the front camera) the zoom is digital, so the picture gets softer the further you go." /></StackPanel><TextBlock Text="Zoom in or out smoothly" Style="{StaticResource RowHint}" /></StackPanel>
+                                <Slider x:Name="ZoomSlider" AutomationProperties.Name="Zoom" skin:Skin.SectionBrush="{DynamicResource SliderZoomBrush}" Grid.Column="1" Margin="12,0" VerticalAlignment="Center" IsSnapToTickEnabled="True" TickFrequency="0.1"
+                                        Minimum="0.6" Maximum="10" Value="1" ValueChanged="OnZoomChanged" />
+                                <TextBlock x:Name="ZoomText" Grid.Column="2" Width="44" TextAlignment="Right" Text="1.0x" Style="{StaticResource MonoValue}" />
+                            </Grid></Border>
+
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Resolution" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Choose the video resolution.&#10;&#10;1080p is a good starting point for calls and streams. 4K has four times as many pixels as 1080p and needs more processing power and bandwidth. 720p reduces the workload.&#10;&#10;The available resolutions depend on your phone. If video stutters, try 1080p or 720p. Changing resolution briefly interrupts the picture." /></StackPanel><TextBlock Text="Video resolution" Style="{StaticResource RowHint}" /></StackPanel><ListBox x:Name="ResolutionBox" AutomationProperties.Name="Resolution" Grid.Column="1" skin:Skin.SectionBrush="{DynamicResource RowResolutionBrush}" Style="{StaticResource ChipList}" Margin="0" HorizontalAlignment="Right" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Frame rate · fps" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Frames per second (fps). 60 fps makes motion smoother but increases processing and power use. 30 fps reduces the workload and can help in low light. Choose a rate your phone, PC and receiving app can sustain." /></StackPanel><TextBlock Text="Pictures per second" Style="{StaticResource RowHint}" /></StackPanel><ListBox x:Name="FrameRateBox" AutomationProperties.Name="Frame rate" Grid.Column="1" skin:Skin.SectionBrush="{DynamicResource RowFpsBrush}" Style="{StaticResource ChipList}" Margin="0" HorizontalAlignment="Right" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Bitrate · Mbps" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Video bitrate, in megabits per second (Mbps). Higher values can preserve more detail during movement but use more bandwidth.&#10;&#10;Start with 20 Mbps for 1080p or 40 Mbps for 4K. Lower it if video stutters.&#10;&#10;Use a reliable USB data cable or a strong local Wi-Fi connection. For Wi-Fi, try 5 GHz near the router; Ethernet can improve the PC connection. Internet speed tests do not measure the connection directly between your phone and PC." /></StackPanel><TextBlock Text="Bandwidth used by the video" Style="{StaticResource RowHint}" /></StackPanel><ComboBox x:Name="QualityBox" AutomationProperties.Name="Video bitrate" Grid.Column="1" Style="{StaticResource Dropdown}" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+                        </StackPanel>
+                    </HeaderedContentControl>
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="03"
+                                            skin:Skin.SectionBrush="{DynamicResource Section3Brush}" skin:Skin.PanelFill="{DynamicResource Panel3Brush}" skin:Skin.Glyph="{DynamicResource Icon3}">
+                        <HeaderedContentControl.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Orientation" Style="{StaticResource PanelTitle}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Auto-rotate keeps the picture upright after the phone stays in a new orientation for about a second. Turn it off to lock orientation, then use Left or Right to rotate the picture by 90 degrees. The picture fits inside the receiving app's frame without cropping; black bars may appear." />
+                            </StackPanel>
+                        </HeaderedContentControl.Header>
+                        <!-- one or the other: Left/Right are greyed out while Auto-rotate is on -->
+                        <Grid IsEnabled="{Binding IsEnabled, ElementName=CameraPanel}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="AutoRotateBox" Content="Auto-rotate" IsChecked="True" VerticalAlignment="Center"
+                                      Checked="OnAutoRotateChanged" Unchecked="OnAutoRotateChanged" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button x:Name="TurnLeftButton" AutomationProperties.Name="Turn the picture left" Style="{StaticResource GhostButton}" Click="OnTurn" Tag="-90" IsEnabled="False"
+                                        ToolTip="Turn the picture a quarter to the left">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE7A7;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                        <TextBlock Text="Left" Style="{StaticResource CaseText}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="TurnRightButton" AutomationProperties.Name="Turn the picture right" Style="{StaticResource GhostButton}" Margin="6,0,0,0" Click="OnTurn" Tag="90" IsEnabled="False"
+                                        ToolTip="Turn the picture a quarter to the right">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Right" Style="{StaticResource CaseText}" />
+                                        <TextBlock Text="&#xE7A6;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" VerticalAlignment="Center" Margin="6,0,0,0" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </HeaderedContentControl>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Phones">
+                        <StackPanel Margin="0,14,0,0">
+                            <TextBlock Text="Your phones" Style="{StaticResource PanelTitle}" Margin="0,0,0,6" />
+                            <TextBlock Style="{StaticResource RowHint}" Margin="0,0,0,12"
+                                       Text="Select a camera to preview its phone and adjust its settings. Each connected phone appears as a separate camera in OBS." />
+                            <TextBlock x:Name="SelectedPhoneText" Style="{StaticResource RowHint}" Margin="0,0,0,8" />
+                            <ListBox x:Name="PhonesList" MinHeight="90" MaxHeight="210" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="OnPhoneSelected"
+                                     ItemContainerStyle="{StaticResource RowItem}" Background="{DynamicResource PanelBrush}" BorderThickness="0"
+                                     FontFamily="{StaticResource SansFont}" FontSize="12" AutomationProperties.Name="Phone camera slots" />
+                            <TextBlock Text="Add a phone" Style="{StaticResource PanelTitle}" Margin="0,18,0,6" />
+                            <TextBlock x:Name="PhonesNote" Style="{StaticResource RowHint}" Margin="0,0,0,8"
+                                       Text="Open Streamsthetic on each phone, join the same network and press Start. Then choose Find phones." />
+                            <WrapPanel Margin="0,0,0,8">
+                                <Button x:Name="FindPhonesButton" Content="Find phones" Style="{StaticResource GhostButton}" Click="OnFindPhones" />
+                                <Button Content="Stop all cameras" Style="{StaticResource GhostButton}" Margin="12,0,0,0" Click="OnStopAllPhones" />
+                            </WrapPanel>
+                            <Grid>
+                                <ListBox x:Name="AvailablePhones" MaxHeight="150" MinHeight="45" ItemContainerStyle="{StaticResource RowItem}"
+                                         Background="{DynamicResource PanelBrush}" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                         FontFamily="{StaticResource SansFont}" FontSize="12" AutomationProperties.Name="Phones found on the network" />
+                                <TextBlock Text="No phones found yet. Choose Find phones to search." Margin="10,8" IsHitTestVisible="False">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource RowHint}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers><DataTrigger Binding="{Binding HasItems, ElementName=AvailablePhones}" Value="False"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                            <Button Content="Connect selected phone" HorizontalAlignment="Left" Margin="0,8,0,0" Click="OnConnectFoundPhone">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                        <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=AvailablePhones}" Value="-1"><Setter Property="IsEnabled" Value="False" /></DataTrigger></Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <TextBlock Style="{StaticResource RowHint}" Margin="0,12,0,0"
+                                       Text="Extra cameras start at 1080p, 30 fps and 10 Mbps. Lower quality if video stutters or a phone gets warm. Microphone audio comes from camera 1." />
+                            <WrapPanel Margin="0,16,0,0">
+                                <Button x:Name="PhoneForgetOneButton" Content="Disconnect and forget" Style="{StaticResource GhostButton}" Click="OnForgetSelectedPhone" IsEnabled="False"
+                                        ToolTip="Disconnect this phone and remove its saved camera slot. Its pairing code stays valid." />
+                                <Button x:Name="PhonesForgetButton" Content="Forget all phones" Style="{StaticResource GhostButton}" Margin="10,0,0,0" Click="OnForgetPhones"
+                                        ToolTip="Disconnect every phone and remove the saved camera slots. Pairing codes stay valid." />
+                            </WrapPanel>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Picture">
+                        <StackPanel Margin="0,14,0,0">
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="04"
+                                            skin:Skin.SectionBrush="{DynamicResource Section4Brush}" skin:Skin.PanelFill="{DynamicResource Panel4Brush}" skin:Skin.Glyph="{DynamicResource Icon4}">
+                        <HeaderedContentControl.Header>
+                            <Grid>
+                                <TextBlock Text="Picture" Style="{StaticResource PanelTitle}" HorizontalAlignment="Left" />
+                                <Button Style="{StaticResource ResetButton}" Click="OnResetPicture" IsEnabled="{Binding IsEnabled, ElementName=PicturePanel}"
+                                        AutomationProperties.AutomationId="ResetPictureButton" AutomationProperties.Name="Reset picture settings"
+                                        ToolTip="Back to Streamsthetic's defaults: brightness 0, focus auto, white balance auto, anti-flicker auto, stabilization off. Changing stabilization may briefly interrupt the picture." />
+                            </Grid>
+                        </HeaderedContentControl.Header>
+                        <StackPanel x:Name="PicturePanel" IsEnabled="False">
+                            <Border Style="{StaticResource RowRule}"><Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Brightness" Style="{StaticResource MonoLabel}" />
+                                    <TextBlock Style="{StaticResource InfoIcon}"
+                                               ToolTip="Adjusts exposure relative to the camera's automatic setting. Increase it if your face is too dark, or decrease it if highlights look washed out. 0 EV leaves the automatic exposure unchanged." /></StackPanel><TextBlock Text="Adjust automatic exposure" Style="{StaticResource RowHint}" /></StackPanel>
+                                <Slider x:Name="BrightnessSlider" AutomationProperties.Name="Brightness" skin:Skin.SectionBrush="{DynamicResource SliderBrightnessBrush}" Grid.Column="1" Margin="12,0" VerticalAlignment="Center" IsSnapToTickEnabled="True" TickFrequency="1"
+                                        Minimum="-20" Maximum="20" Value="0" ValueChanged="OnBrightnessChanged" />
+                                <TextBlock x:Name="BrightnessText" Grid.Column="2" Width="52" TextAlignment="Right" Text="0 EV" Style="{StaticResource MonoValue}" />
+                            </Grid></Border>
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Focus" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Auto adjusts focus as the scene changes. Locked keeps the current focus distance. Position yourself first, wait for a sharp picture, then choose Locked to prevent refocusing." /></StackPanel><TextBlock Text="Automatic or locked" Style="{StaticResource RowHint}" /></StackPanel><ListBox x:Name="FocusBox" AutomationProperties.Name="Focus" Grid.Column="1" skin:Skin.SectionBrush="{DynamicResource RowFocusBrush}" Style="{StaticResource ChipList}" Margin="0" HorizontalAlignment="Right" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="White balance" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Adjusts colour so white objects look neutral. Auto suits most lighting. If the picture looks too orange or blue, choose the matching light source. A fixed setting can also prevent colour shifts as the scene changes." /></StackPanel><TextBlock Text="Match the lighting" Style="{StaticResource RowHint}" /></StackPanel><ComboBox x:Name="WhiteBalanceBox" AutomationProperties.Name="White balance" Grid.Column="1" Style="{StaticResource Dropdown}" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Anti-flicker" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Reduces flicker or rolling bands from artificial lighting. Auto is a good starting point. If flicker remains, try 50 Hz or 60 Hz to match your local electricity supply. Some LED lights may still flicker." /></StackPanel><TextBlock Text="Reduces flicker from lamps" Style="{StaticResource RowHint}" /></StackPanel><ComboBox x:Name="FlickerBox" AutomationProperties.Name="Anti-flicker" Grid.Column="1" Style="{StaticResource Dropdown}" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Stabilization" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Reduces camera shake when holding or moving the phone. Depending on the phone, stabilization may crop the image or add delay. Leave it off on a stable stand or tripod. Changing it may briefly interrupt the picture." /></StackPanel><TextBlock Text="Reduce camera shake" Style="{StaticResource RowHint}" /></StackPanel><ListBox x:Name="StabilizationBox" AutomationProperties.Name="Stabilization" Grid.Column="1" skin:Skin.SectionBrush="{DynamicResource RowStabBrush}" Style="{StaticResource ChipList}" Margin="0" HorizontalAlignment="Right" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+<Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Mirror" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Flips the video horizontally before it reaches other apps. Text in the scene will appear backwards. Some calling apps also mirror their own preview, so check the picture your viewers receive." /></StackPanel><TextBlock Text="Flips the picture left to right" Style="{StaticResource RowHint}" /></StackPanel><ListBox x:Name="MirrorBox" AutomationProperties.Name="Mirror" Grid.Column="1" skin:Skin.SectionBrush="{DynamicResource RowStabBrush}" Style="{StaticResource ChipList}" Margin="0" HorizontalAlignment="Right" SelectionChanged="OnCameraSettingChanged" /></Grid></Border>
+                        </StackPanel>
+                    </HeaderedContentControl>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Settings">
+                        <StackPanel Margin="0,14,0,0">
+                            <ListBox x:Name="SettingsCategories" SelectedIndex="0" Style="{StaticResource ChipList}"
+                                     skin:Skin.SectionBrush="{DynamicResource AccentBrush}"
+                                     AutomationProperties.Name="Settings category" KeyboardNavigation.TabNavigation="Once"
+                                     Margin="0,0,0,12">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource Chip}">
+                                        <Setter Property="FocusVisualStyle">
+                                            <Setter.Value><Style><Setter Property="Control.Template"><Setter.Value>
+                                                <ControlTemplate><Border BorderBrush="{DynamicResource InkBrush}" BorderThickness="2" Margin="-2" CornerRadius="{DynamicResource ChipCorner}" /></ControlTemplate>
+                                            </Setter.Value></Setter></Style></Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBoxItem Content="Appearance" AutomationProperties.Name="Appearance settings" />
+                                <ListBoxItem Content="Streaming" AutomationProperties.Name="Streaming settings" />
+                                <ListBoxItem Content="Audio" AutomationProperties.Name="Audio settings" />
+                                <ListBoxItem Content="Help" AutomationProperties.Name="Help and requirements" />
+                            </ListBox>
+                            <StackPanel x:Name="AppearanceSettingsSection" AutomationProperties.Name="Appearance settings content">
+                                <StackPanel.Style><Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SettingsCategories}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger></Style.Triggers>
+                                </Style></StackPanel.Style>
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="06" Margin="0,0,0,16"
+                                    skin:Skin.SectionBrush="{DynamicResource Section1Brush}" skin:Skin.PanelFill="{DynamicResource Panel1Brush}" skin:Skin.Glyph="{DynamicResource Icon1}">
+                                <HeaderedContentControl.Header>
+                                    <TextBlock Text="Look" Style="{StaticResource PanelTitle}" />
+                                </HeaderedContentControl.Header>
+                                <StackPanel>
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Theme" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="How Streamsthetic looks. Studio: orange control panel. Creator: soft and colourful. Gamer: neon yellow on black, always dark. Brutal: thick lines and big type. Dot: dot-matrix lettering and red. Prism: soft raised surfaces in white and grey with a little red. Contrast: high-contrast colours and thicker outlines. Only the look changes: the layout and every setting stay the same, and the video is not affected." /></StackPanel><TextBlock Text="How Streamsthetic looks" Style="{StaticResource RowHint}" /></StackPanel><ComboBox x:Name="SkinBox" AutomationProperties.Name="Theme" Grid.Column="1" Style="{StaticResource Dropdown}" SelectionChanged="OnSkinChanged" /></Grid></Border>
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Appearance" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Light or dark colours for the chosen theme. System follows the setting you chose for Windows (Settings, Personalization, Colors) and changes with it. The Gamer theme is always dark." /></StackPanel><TextBlock Text="Light or dark colours" Style="{StaticResource RowHint}" /></StackPanel><ListBox x:Name="AppearanceBox" AutomationProperties.Name="Appearance" Grid.Column="1" skin:Skin.SectionBrush="{DynamicResource RowAppearanceBrush}" Style="{StaticResource ChipList}" Margin="0" HorizontalAlignment="Right" SelectionChanged="OnAppearanceChanged" /></Grid></Border>
+                            <TextBlock x:Name="AppearanceNote" Style="{StaticResource Body}" Margin="0,4,0,0" Visibility="Collapsed" Text="Gamer is always dark." />
+                                </StackPanel>
+                            </HeaderedContentControl>
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="08" Margin="0,0,0,16"
+                                    skin:Skin.SectionBrush="{DynamicResource Section3Brush}" skin:Skin.PanelFill="{DynamicResource Panel3Brush}" skin:Skin.Glyph="{DynamicResource Icon3}">
+                                <HeaderedContentControl.Header>
+                                    <TextBlock Text="Accessibility" Style="{StaticResource PanelTitle}" />
+                                </HeaderedContentControl.Header>
+                                <StackPanel>
+                            <Border Style="{StaticResource RowRule}"><StackPanel><StackPanel><StackPanel Orientation="Horizontal"><TextBlock Text="Text and icon size" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Makes everything in this window bigger: text, icons, buttons and spacing. Normal is the standard size; Largest is about 1.7 times bigger. The window gets a scroll bar when it no longer fits your screen. It only changes how Streamsthetic looks, not your video." /></StackPanel><TextBlock Text="Easier to read and click" Style="{StaticResource RowHint}" /></StackPanel><ListBox x:Name="SizeBox" AutomationProperties.Name="Text and icon size" Style="{StaticResource ChipList}" Margin="0,8,0,0" HorizontalAlignment="Left" SelectionChanged="OnSizeChanged" /></StackPanel></Border>
+                            <TextBlock Text="For high-contrast colours and thicker outlines, choose the Contrast theme in Appearance."
+                                       Style="{StaticResource RowHint}" Margin="0,0,0,4" />
+                                </StackPanel>
+                            </HeaderedContentControl>
+                            </StackPanel>
+                            <StackPanel x:Name="StreamingSettingsSection" AutomationProperties.Name="Streaming settings content">
+                                <StackPanel.Style><Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SettingsCategories}" Value="1">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger></Style.Triggers>
+                                </Style></StackPanel.Style>
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="05" Margin="0,0,0,16"
+                                    skin:Skin.SectionBrush="{DynamicResource Section5Brush}" skin:Skin.PanelFill="{DynamicResource Panel5Brush}" skin:Skin.Glyph="{DynamicResource Icon5}">
+                                <HeaderedContentControl.Header>
+                                    <TextBlock Text="Streaming" Style="{StaticResource PanelTitle}" />
+                                </HeaderedContentControl.Header>
+                                <StackPanel>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="TrayBox" Content="Keep running in the tray when I close the window" Click="OnTrayOptionChanged" />
+                                        <TextBlock Style="{StaticResource InfoIcon}"
+                                                   ToolTip="Keeps Streamsthetic running when you close its window, so active cameras continue streaming. Click the tray icon to reopen the window, or choose Exit from its menu to stop the app." />
+                                    </StackPanel>
+                                    <TextBlock Text="The camera stays ready for OBS and other apps" Style="{StaticResource RowHint}" Margin="28,3,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="StartupBox" Content="Start Streamsthetic when I sign in" Click="OnTrayOptionChanged" />
+                                        <TextBlock Style="{StaticResource InfoIcon}"
+                                                   ToolTip="Opens Streamsthetic when you sign in to Windows. It starts in the tray if that option is also enabled. Automatic connection still depends on your connection settings and the phone being ready." />
+                                    </StackPanel>
+                                    <TextBlock Text="Open the app automatically at sign-in" Style="{StaticResource RowHint}" Margin="28,3,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="HeatAutoBox" Content="Lower the phone's quality when it gets warm" IsChecked="True" Click="OnHeatAutoChanged" />
+                                        <TextBlock Style="{StaticResource InfoIcon}"
+                                                   ToolTip="Allows the phone to reduce bitrate, resolution or frame rate when it gets warm, then restore your settings after it cools. You can also change this in the phone app under Settings &gt; Streaming &amp; power." />
+                                    </StackPanel>
+                                    <TextBlock Text="Reduce workload when the phone gets warm" Style="{StaticResource RowHint}" Margin="28,3,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="AutoConnectBox" Content="Connect automatically when the phone starts" IsChecked="True" Click="OnAutoConnectChanged" />
+                                        <TextBlock Style="{StaticResource InfoIcon}"
+                                                   ToolTip="Automatically looks for the phone over USB tethering or Wi-Fi. Start streaming on a paired phone to connect. If you stop a camera on this PC, press Start to resume it. USB debugging has a separate Start when plugged in option." />
+                                    </StackPanel>
+                                    <TextBlock Text="Connect when a paired phone starts streaming" Style="{StaticResource RowHint}" Margin="28,3,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <CheckBox x:Name="MatchFpsBox" Content="Match the frame rate to the app" IsChecked="True" Click="OnMatchFpsChanged" />
+                                        <TextBlock Style="{StaticResource InfoIcon}"
+                                                   ToolTip="If the receiving app requests a lower frame rate, Streamsthetic can lower the phone's rate to reduce processing and power use. This may briefly interrupt the picture. Turn this off to keep the rate you selected." />
+                                    </StackPanel>
+                                    <TextBlock Text="Reduce workload to match the receiving app" Style="{StaticResource RowHint}" Margin="28,3,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Video decoding" Style="{StaticResource MonoLabel}" />
+                                        <TextBlock Style="{StaticResource InfoIcon}"
+                                                   ToolTip="Choose whether the processor or graphics hardware decodes incoming video. Performance depends on the PC, video format and other apps. The change takes effect when you restart the connection." />
+                                    </StackPanel>
+                                    <TextBlock Text="Which part of your PC decodes the phone's video" Style="{StaticResource RowHint}" />
+                                    <ListBox x:Name="DecodeBox" AutomationProperties.Name="Video decoding" Style="{StaticResource ChipList}" Margin="0,8,0,0" HorizontalAlignment="Left" SelectionChanged="OnDecodeChanged" />
+                                    <TextBlock x:Name="DecodeExplain" Style="{StaticResource RowHint}" TextWrapping="Wrap" Margin="0,10,0,0" />
+                                </StackPanel>
+                            </Border>
+                                </StackPanel>
+                            </HeaderedContentControl>
+                            </StackPanel>
+                            <StackPanel x:Name="AudioSettingsSection" AutomationProperties.Name="Audio settings content">
+                                <StackPanel.Style><Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SettingsCategories}" Value="2">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger></Style.Triggers>
+                                </Style></StackPanel.Style>
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="07" Margin="0,0,0,16"
+                                    skin:Skin.SectionBrush="{DynamicResource Section2Brush}" skin:Skin.PanelFill="{DynamicResource Panel2Brush}" skin:Skin.Glyph="{DynamicResource Icon2}">
+                                <HeaderedContentControl.Header>
+                                    <TextBlock Text="Microphone" Style="{StaticResource PanelTitle}" />
+                                </HeaderedContentControl.Header>
+                                <StackPanel>
+                            <Border Style="{StaticResource RowRule}"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><TextBlock Text="Phone microphone" Style="{StaticResource MonoLabel}" />
+                                <TextBlock Style="{StaticResource InfoIcon}"
+                                           ToolTip="Plays audio from camera 1's phone through the selected PC audio output. Enable Microphone in the phone app first, then restart the connection.&#10;&#10;Choose speakers or headphones to listen locally. To provide a microphone input to OBS or a calling app, use a virtual audio cable: select its playback input here and its recording output in the other app. Streamsthetic does not install a virtual microphone.&#10;&#10;Audio uses about 1 Mbps." /></StackPanel><TextBlock Text="Audio output for camera 1" Style="{StaticResource RowHint}" /></StackPanel><ComboBox x:Name="MicBox" AutomationProperties.Name="Phone microphone output" Grid.Column="1" Style="{StaticResource Dropdown}" MinWidth="200" SelectionChanged="OnMicChanged" /></Grid></Border>
+                            <TextBlock x:Name="MicNote" Style="{StaticResource RowHint}" TextWrapping="Wrap" Margin="0,0,0,6">
+                                <Run x:Name="MicNoteText" />
+                                <Hyperlink x:Name="MicNoteLink" NavigateUri="https://vb-audio.com/Cable/" RequestNavigate="OnOpenLink">Get VB-Cable</Hyperlink>
+                            </TextBlock>
+
+                                </StackPanel>
+                            </HeaderedContentControl>
+                            </StackPanel>
+                            <StackPanel x:Name="HelpSettingsSection" AutomationProperties.Name="Help settings content">
+                                <StackPanel.Style><Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers><DataTrigger Binding="{Binding SelectedIndex, ElementName=SettingsCategories}" Value="3">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger></Style.Triggers>
+                                </Style></StackPanel.Style>
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="10" Margin="0,0,0,16"
+                                    skin:Skin.SectionBrush="{DynamicResource Section4Brush}" skin:Skin.PanelFill="{DynamicResource Panel4Brush}" skin:Skin.Glyph="{DynamicResource Icon4}">
+                                <HeaderedContentControl.Header>
+                                    <TextBlock Text="Help" Style="{StaticResource PanelTitle}" />
+                                </HeaderedContentControl.Header>
+                                <StackPanel>
+                            <TextBlock Style="{StaticResource Body}" Margin="0,0,0,10">
+                                <Run x:Name="LastProblemText" />
+                            </TextBlock>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <TextBlock><Hyperlink x:Name="ReportLink" Click="OnReportProblem">Report a problem</Hyperlink></TextBlock>
+                                    <TextBlock Text="Save a description of the problem and diagnostic logs" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <TextBlock><Hyperlink Click="OnSetupGuide">Setup guide</Hyperlink></TextBlock>
+                                    <TextBlock Text="Connect your phone and choose the camera in another app" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource RowRule}">
+                                <StackPanel>
+                                    <TextBlock><Hyperlink Click="OnCheckUpdates">Check for updates</Hyperlink><Run x:Name="UpdateText" /></TextBlock>
+                                    <TextBlock Text="Check for a newer version; nothing installs automatically" Style="{StaticResource RowHint}" />
+                                </StackPanel>
+                            </Border>
+                                </StackPanel>
+                            </HeaderedContentControl>
+<HeaderedContentControl Style="{StaticResource InstrumentPanel}" Tag="09" Margin="0,0,0,16"
+                                    skin:Skin.SectionBrush="{DynamicResource Section2Brush}" skin:Skin.PanelFill="{DynamicResource Panel2Brush}" skin:Skin.Glyph="{DynamicResource Icon2}">
+                                <HeaderedContentControl.Header>
+                                    <TextBlock Text="Requirements" Style="{StaticResource PanelTitle}" />
+                                </HeaderedContentControl.Header>
+                                <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap" Text="Phone: Android 11 or newer, with camera access allowed. Available resolutions and frame rates depend on the phone.&#10;&#10;PC: Windows 11. Install the Streamsthetic virtual camera when prompted.&#10;&#10;USB: a data cable and USB tethering enabled on the phone. USB debugging is needed only for the optional Advanced connection.&#10;&#10;Wi-Fi: both devices on the same local network. A strong 5 GHz connection is recommended; the PC can use Ethernet.&#10;&#10;Start with 1080p at 30 fps. Higher resolutions and frame rates need more processing power and bandwidth. If video stutters, reduce resolution, frame rate or bitrate.&#10;&#10;Video travels locally between your phone and PC, not through an internet service." />
+                            </HeaderedContentControl>
+                            </StackPanel>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+            <!-- ============ footer strip ============ -->
+            <Grid Grid.Row="2" Margin="24,4,24,16">
+                <TextBlock x:Name="FooterLeft" Style="{StaticResource HeaderKey}" Margin="0"
+                           Text="Streamsthetic  ·  Phone to Windows camera  ·  USB and Wi-Fi" />
+                <TextBlock x:Name="FooterRight" Style="{StaticResource HeaderKey}" Margin="0" HorizontalAlignment="Right" />
+            </Grid>
+    </Grid>
+</Window>

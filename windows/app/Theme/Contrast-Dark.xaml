@@ -1,0 +1,92 @@
+<!-- Generated from one table (tools/theme_selftest.ps1 checks every theme defines the same keys). Theme: Contrast-Dark. See docs/DESIGN_PATTERNS.md "Themes". -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <SolidColorBrush x:Key="PaperBrush" Color="#000000" />
+    <SolidColorBrush x:Key="PanelBrush" Color="#000000" />
+    <SolidColorBrush x:Key="PanelStrokeBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="HairlineBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="InkBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Ink2Brush" Color="#E6E6E6" />
+    <SolidColorBrush x:Key="Ink3Brush" Color="#BDBDBD" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#FFE24D" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#000000" />
+    <SolidColorBrush x:Key="LinkBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="TrackBrush" Color="#808080" />
+    <SolidColorBrush x:Key="ChipHoverBrush" Color="#262626" />
+    <SolidColorBrush x:Key="ChipFillBrush" Color="#000000" />
+    <SolidColorBrush x:Key="ChipStrokeBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="OnPrimaryBrush" Color="#000000" />
+    <SolidColorBrush x:Key="HeaderBlockBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="OnHeaderBrush" Color="#000000" />
+    <SolidColorBrush x:Key="GoodBrush" Color="#0F7A3A" />
+    <SolidColorBrush x:Key="BadBrush" Color="#C8260E" />
+    <SolidColorBrush x:Key="WaitBrush" Color="#B45309" />
+    <SolidColorBrush x:Key="IdleBrush" Color="#6B6B6B" />
+    <SolidColorBrush x:Key="OnStatusBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Section1Brush" Color="#FFD400" />
+    <SolidColorBrush x:Key="Section2Brush" Color="#FFD400" />
+    <SolidColorBrush x:Key="Section3Brush" Color="#FFD400" />
+    <SolidColorBrush x:Key="Section4Brush" Color="#FFD400" />
+    <SolidColorBrush x:Key="Section5Brush" Color="#FFD400" />
+    <SolidColorBrush x:Key="SectionInkBrush" Color="#000000" />
+    <SolidColorBrush x:Key="Panel1Brush" Color="#000000" />
+    <SolidColorBrush x:Key="Panel2Brush" Color="#000000" />
+    <SolidColorBrush x:Key="Panel3Brush" Color="#000000" />
+    <SolidColorBrush x:Key="Panel4Brush" Color="#000000" />
+    <SolidColorBrush x:Key="Panel5Brush" Color="#000000" />
+    <SolidColorBrush x:Key="RowLensBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowResolutionBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowFpsBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowQualityBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowFocusBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowWbBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowFlickerBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowStabBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowThemeBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="RowAppearanceBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="SliderZoomBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="SliderBrightnessBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="SliderReportBrush" Color="#FFD400" />
+    <SolidColorBrush x:Key="ReadoutHue1Brush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ReadoutHue2Brush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ReadoutHue3Brush" Color="#FFFFFF" />
+    <CornerRadius x:Key="PanelCorner">4</CornerRadius>
+    <CornerRadius x:Key="ChipCorner">4</CornerRadius>
+    <CornerRadius x:Key="ButtonCorner">4</CornerRadius>
+    <Thickness x:Key="PanelBorder">3</Thickness>
+    <Thickness x:Key="ChipBorder">2</Thickness>
+    <Thickness x:Key="HeaderIndent">10,0,0,0</Thickness>
+    <x:Null x:Key="PanelEffect" />
+    <x:Null x:Key="PanelEffectLight" />
+    <x:Null x:Key="ChipEffect" />
+    <FontFamily x:Key="LabelFont">pack://application:,,,/Fonts/#IBM Plex Mono</FontFamily>
+    <FontFamily x:Key="TitleFont">pack://application:,,,/Fonts/#IBM Plex Mono</FontFamily>
+    <FontFamily x:Key="ChipFont">pack://application:,,,/Fonts/#IBM Plex Mono</FontFamily>
+    <FontFamily x:Key="ReadoutFont">pack://application:,,,/Fonts/#Archivo</FontFamily>
+    <FontFamily x:Key="WordmarkFont">pack://application:,,,/Fonts/#Doto</FontFamily>
+    <sys:Double x:Key="LabelSize">11</sys:Double>
+    <sys:Double x:Key="TitleSize">12</sys:Double>
+    <sys:Double x:Key="ReadoutSize">40</sys:Double>
+    <sys:Double x:Key="ReadoutLine">42</sys:Double>
+    <sys:Double x:Key="WordmarkSize">30</sys:Double>
+    <FontWeight x:Key="TitleWeight">SemiBold</FontWeight>
+    <FontWeight x:Key="ReadoutWeight">Bold</FontWeight>
+    <sys:Boolean x:Key="UpperCase">True</sys:Boolean>
+    <Visibility x:Key="AccentBarVisibility">Collapsed</Visibility>
+    <Visibility x:Key="IconVisibility">Collapsed</Visibility>
+    <Visibility x:Key="BracketVisibility">Collapsed</Visibility>
+    <Visibility x:Key="ViewfinderVisibility">Collapsed</Visibility>
+    <Visibility x:Key="StarVisibility">Collapsed</Visibility>
+    <Visibility x:Key="ArrowVisibility">Collapsed</Visibility>
+    <Visibility x:Key="TicksVisibility">Collapsed</Visibility>
+    <sys:String x:Key="ArrowGlyph">&#x2198;</sys:String>
+    <sys:String x:Key="Icon1">&#xE839;</sys:String>
+    <sys:String x:Key="Icon2">&#xE722;</sys:String>
+    <sys:String x:Key="Icon3">&#xE7AD;</sys:String>
+    <sys:String x:Key="Icon4">&#xE91B;</sys:String>
+    <sys:String x:Key="Icon5">&#xE713;</sys:String>
+</ResourceDictionary>

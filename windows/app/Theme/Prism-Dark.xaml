@@ -1,0 +1,92 @@
+<!-- Generated from one table (tools/theme_selftest.ps1 checks every theme defines the same keys). Theme: Prism-Dark. See docs/DESIGN_PATTERNS.md "Themes". -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <SolidColorBrush x:Key="PaperBrush" Color="#1A1A1C" />
+    <SolidColorBrush x:Key="PanelBrush" Color="#242427" />
+    <SolidColorBrush x:Key="PanelStrokeBrush" Color="#00FFFFFF" />
+    <SolidColorBrush x:Key="HairlineBrush" Color="#38383D" />
+    <SolidColorBrush x:Key="InkBrush" Color="#F2F2F3" />
+    <SolidColorBrush x:Key="Ink2Brush" Color="#B0B2B8" />
+    <SolidColorBrush x:Key="Ink3Brush" Color="#77797F" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#FF4750" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#FF6A71" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#1A1A1C" />
+    <SolidColorBrush x:Key="LinkBrush" Color="#FF5961" />
+    <SolidColorBrush x:Key="TrackBrush" Color="#38383D" />
+    <SolidColorBrush x:Key="ChipHoverBrush" Color="#34343A" />
+    <SolidColorBrush x:Key="ChipFillBrush" Color="#2E2E32" />
+    <SolidColorBrush x:Key="ChipStrokeBrush" Color="#00FFFFFF" />
+    <SolidColorBrush x:Key="PrimaryBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="OnPrimaryBrush" Color="#1A1A1C" />
+    <SolidColorBrush x:Key="HeaderBlockBrush" Color="#2E2E32" />
+    <SolidColorBrush x:Key="OnHeaderBrush" Color="#F2F2F3" />
+    <SolidColorBrush x:Key="GoodBrush" Color="#0F7A3A" />
+    <SolidColorBrush x:Key="BadBrush" Color="#C8260E" />
+    <SolidColorBrush x:Key="WaitBrush" Color="#B45309" />
+    <SolidColorBrush x:Key="IdleBrush" Color="#6B6B6B" />
+    <SolidColorBrush x:Key="OnStatusBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Section1Brush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="Section2Brush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="Section3Brush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="Section4Brush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="Section5Brush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="SectionInkBrush" Color="#1A1A1C" />
+    <SolidColorBrush x:Key="Panel1Brush" Color="#242427" />
+    <SolidColorBrush x:Key="Panel2Brush" Color="#242427" />
+    <SolidColorBrush x:Key="Panel3Brush" Color="#242427" />
+    <SolidColorBrush x:Key="Panel4Brush" Color="#242427" />
+    <SolidColorBrush x:Key="Panel5Brush" Color="#242427" />
+    <SolidColorBrush x:Key="RowLensBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowResolutionBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowFpsBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowQualityBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowFocusBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowWbBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowFlickerBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowStabBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowThemeBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="RowAppearanceBrush" Color="#E6E6E8" />
+    <SolidColorBrush x:Key="SliderZoomBrush" Color="#FF4750" />
+    <SolidColorBrush x:Key="SliderBrightnessBrush" Color="#FF4750" />
+    <SolidColorBrush x:Key="SliderReportBrush" Color="#FF4750" />
+    <SolidColorBrush x:Key="ReadoutHue1Brush" Color="#FF5961" />
+    <SolidColorBrush x:Key="ReadoutHue2Brush" Color="#F2F2F3" />
+    <SolidColorBrush x:Key="ReadoutHue3Brush" Color="#F2F2F3" />
+    <CornerRadius x:Key="PanelCorner">34</CornerRadius>
+    <CornerRadius x:Key="ChipCorner">18</CornerRadius>
+    <CornerRadius x:Key="ButtonCorner">30</CornerRadius>
+    <Thickness x:Key="PanelBorder">0</Thickness>
+    <Thickness x:Key="ChipBorder">0</Thickness>
+    <Thickness x:Key="HeaderIndent">10,0,0,0</Thickness>
+    <DropShadowEffect x:Key="PanelEffect" BlurRadius="30" ShadowDepth="12" Direction="315" Opacity="0.6" Color="#000000" />
+    <DropShadowEffect x:Key="PanelEffectLight" BlurRadius="26" ShadowDepth="10" Direction="135" Opacity="0.5" Color="#3C3C42" />
+    <DropShadowEffect x:Key="ChipEffect" BlurRadius="8" ShadowDepth="3" Direction="315" Opacity="0.55" Color="#000000" />
+    <FontFamily x:Key="LabelFont">pack://application:,,,/Fonts/#Michroma</FontFamily>
+    <FontFamily x:Key="TitleFont">pack://application:,,,/Fonts/#Michroma</FontFamily>
+    <FontFamily x:Key="ChipFont">pack://application:,,,/Fonts/#Archivo</FontFamily>
+    <FontFamily x:Key="ReadoutFont">pack://application:,,,/Fonts/#Michroma</FontFamily>
+    <FontFamily x:Key="WordmarkFont">pack://application:,,,/Fonts/#Michroma</FontFamily>
+    <sys:Double x:Key="LabelSize">9.5</sys:Double>
+    <sys:Double x:Key="TitleSize">11</sys:Double>
+    <sys:Double x:Key="ReadoutSize">34</sys:Double>
+    <sys:Double x:Key="ReadoutLine">38</sys:Double>
+    <sys:Double x:Key="WordmarkSize">20</sys:Double>
+    <FontWeight x:Key="TitleWeight">Normal</FontWeight>
+    <FontWeight x:Key="ReadoutWeight">Normal</FontWeight>
+    <sys:Boolean x:Key="UpperCase">True</sys:Boolean>
+    <Visibility x:Key="AccentBarVisibility">Collapsed</Visibility>
+    <Visibility x:Key="IconVisibility">Visible</Visibility>
+    <Visibility x:Key="BracketVisibility">Collapsed</Visibility>
+    <Visibility x:Key="ViewfinderVisibility">Collapsed</Visibility>
+    <Visibility x:Key="StarVisibility">Collapsed</Visibility>
+    <Visibility x:Key="ArrowVisibility">Collapsed</Visibility>
+    <Visibility x:Key="TicksVisibility">Visible</Visibility>
+    <sys:String x:Key="ArrowGlyph">&#x2198;</sys:String>
+    <sys:String x:Key="Icon1">&#xE839;</sys:String>
+    <sys:String x:Key="Icon2">&#xE722;</sys:String>
+    <sys:String x:Key="Icon3">&#xE7AD;</sys:String>
+    <sys:String x:Key="Icon4">&#xE91B;</sys:String>
+    <sys:String x:Key="Icon5">&#xE713;</sys:String>
+</ResourceDictionary>
