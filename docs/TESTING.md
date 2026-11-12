@@ -14,9 +14,15 @@ The beta has been built and tested on development machines and a limited set of 
 
 An extraction check proves that an installer contains the expected bytes. A synthetic receiver test proves behavior for its supplied input. Neither is a substitute for running the installed camera on a fresh PC.
 
+## Clean Windows Sandbox result — 12 November 2026
+
+The actual offline installer was run in a new Windows 11 x64 Sandbox with no .NET SDK or runtime installed. Camera setup failed with access denied. A separate follow-up launched the installed app files successfully and ran the bundled USB tool, but that does not turn the failed installation into a pass.
+
+See the [test report](testing/2026-11-12-windows-sandbox.md) for the environment, evidence and remaining limits.
+
 ## Checks that still need completion
 
-- Installation on a fresh Windows 11 x64 environment. A Windows Sandbox runner is prepared, but the environment requires activation and a restart before that test can run.
+- Successful complete installation on a fresh Windows 11 x64 environment. The Sandbox camera-access failure needs resolution or verification in a full Windows VM or separate clean PC.
 - Independent Media Foundation camera enumeration and frame delivery in that clean environment.
 - Physical phone streaming, USB behavior and GPU compatibility on additional PCs and phones.
 - Upgrade and full removal on a clean installation, including camera removal.

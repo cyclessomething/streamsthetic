@@ -19,6 +19,8 @@ The Windows installer is unsigned; Windows may display an unknown-publisher or S
 
 ## Get started
 
+**[Read the Streamsthetic user guide](docs/guide/README.md)** for installation, connections, every app section, picture and audio controls, multiple phones, and troubleshooting.
+
 1. Run the Windows offline installer. Camera installation requires administrator approval. You do not need Visual Studio, an Android SDK or a separately installed .NET runtime to use this package.
 2. Install the APK on your phone, allowing installation from your browser or file manager if Android requests it. Open Streamsthetic and allow camera access. Notifications are recommended; microphone access and unrestricted battery are optional.
 3. Choose a connection method on both devices:
@@ -44,7 +46,7 @@ Microphone audio plays through the output selected in the Windows app. Streamsth
 
 ## Beta limitations
 
-- Builds, automated tests and live development-device checks have passed, but a fresh Windows 11 installation test is still pending. The isolated Sandbox runner is prepared; its environment needs activation and a restart before execution. See [testing coverage](docs/TESTING.md).
+- The app rendered and its bundled USB tool ran in a clean Windows Sandbox without a preinstalled .NET runtime. Camera installation failed with access denied, so clean-Windows camera acceptance has **not passed**. See [the Sandbox results](docs/testing/2026-11-12-windows-sandbox.md) and [testing coverage](docs/TESTING.md).
 - Device coverage is limited. Four-session synthetic tests are not a claim that four physical phones sustain every resolution on every PC.
 - The Android development signer is not a production signing plan. A future change of signer may require uninstalling the beta and pairing again.
 - Windows camera installation requires Media Foundation. Windows editions without the required media components need those components installed first.
