@@ -13,11 +13,12 @@ Camera setup also preserves the actual Windows error, failing stage and native e
 - Installer fixture tests passed, including native-error and timeout-output preservation.
 - The actual installed Windows app opened a GitHub draft with test text. No test issue was submitted. Further Firefox inspection was unavailable through the automation tool.
 - APK signer continuity and package hashes/extraction were checked. The Android reporting flow has not yet been checked on a physical phone.
+- The published offline installer completed on a fresh Windows 11 x64 Hyper-V VM without a preinstalled .NET SDK or runtime. The app rendered and all four virtual cameras delivered changing synthetic 720p frames. See the [clean VM report](testing/2026-11-12-windows-11-vm.md).
 
 ## Remaining release limits
 
 This remains a testing prerelease. Windows executables are unsigned and the APK is development-signed and debuggable.
 
-Fresh Windows camera acceptance is still pending. The 0.2.4 offline installer failed in two clean Sandbox configurations, including one with video input enabled. The 0.2.5 diagnostic scripts correctly preserve the same camera-start error in that guest; this is not a successful fresh installation. See the [Sandbox report](testing/2026-11-12-windows-sandbox.md) and [testing coverage](TESTING.md).
+Physical phone streaming, USB behavior, GPU compatibility, upgrade and complete camera removal were outside the clean VM run. See [testing coverage](TESTING.md).
 
 [User guide](guide/README.md) · [Downloads](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.5-beta.1)

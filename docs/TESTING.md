@@ -20,7 +20,11 @@ The Windows draft helper passed 12 checks for the fixed GitHub destination, URL 
 
 An actual Windows **Continue on GitHub** click opened Firefox at the new-issue page with test text. Further automated browser inspection was blocked by the automation tool's unsupported Firefox URL checks; successful submission was not tested, and no issue was submitted. Android reporting still needs an on-device check of the browser handoff, optional sharing and saved-summary recovery. Build and lint success do not replace those checks.
 
-## Clean Windows Sandbox result — 12 November 2026
+## Clean Windows 11 VM result — 12 November 2026
+
+The published 0.2.5 offline installer completed in a fresh Windows 11 x64 Hyper-V VM with guest networking disconnected and no preinstalled .NET SDK or runtime. The installed app rendered successfully, and four local virtual camera outputs delivered changing synthetic 720p frames. See the [full VM test report](testing/2026-11-12-windows-11-vm.md).
+
+## Earlier Windows Sandbox result — 12 November 2026
 
 The actual offline installer was run in a new Windows 11 x64 Sandbox with no .NET SDK or runtime installed. Camera setup failed with access denied. A separate follow-up launched the installed app files successfully and ran the bundled USB tool, but that does not turn the failed installation into a pass.
 
@@ -28,8 +32,7 @@ See the [test report](testing/2026-11-12-windows-sandbox.md) for the environment
 
 ## Checks that still need completion
 
-- Successful complete installation on a fresh Windows 11 x64 environment. The Sandbox camera-access failure needs resolution or verification in a full Windows VM or separate clean PC.
-- Independent Media Foundation camera enumeration and frame delivery in that clean environment.
+- Fresh installation and camera delivery on additional Windows 11 builds and physical PCs.
 - Physical phone streaming, USB behavior and GPU compatibility on additional PCs and phones.
 - Upgrade and full removal on a clean installation, including camera removal.
 

@@ -47,7 +47,7 @@ Microphone audio plays through the output selected in the Windows app. Streamsth
 
 ## Beta limitations
 
-- The app rendered and its bundled USB tool ran in a clean Windows Sandbox without a preinstalled .NET runtime. Camera installation failed with access denied, so clean-Windows camera acceptance has **not passed**. See [the Sandbox results](docs/testing/2026-11-12-windows-sandbox.md) and [testing coverage](docs/TESTING.md).
+- The 0.2.5 offline installer and all four virtual cameras passed on a fresh Windows 11 x64 VM without a preinstalled .NET runtime. The test used synthetic video. See the [clean VM results](docs/testing/2026-11-12-windows-11-vm.md) and [testing coverage](docs/TESTING.md).
 - Device coverage is limited. Four-session synthetic tests are not a claim that four physical phones sustain every resolution on every PC.
 - The Android development signer is not a production signing plan. A future change of signer may require uninstalling the beta and pairing again.
 - Windows camera installation requires Media Foundation. Windows editions without the required media components need those components installed first.

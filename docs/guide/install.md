@@ -28,7 +28,7 @@ Open the [v0.2.5-beta.1 release](https://github.com/cyclessomething/streamstheti
 
 The offline Windows installer does not require Visual Studio, an Android SDK or a separately installed .NET runtime. The smaller **Streamsthetic-Setup.exe** needs .NET 10 Desktop Runtime and may download it during setup. The ZIP files are alternative packages; most people should use the offline EXE.
 
-> **Testing release:** the Windows installer is unsigned, so Windows may show an unknown-publisher or SmartScreen notice. The APK uses a development signing key and is debuggable. Download from the release linked above and review its notes. Clean Windows camera installation has not passed acceptance testing; see [testing coverage](../TESTING.md).
+> **Testing release:** the Windows installer is unsigned, so Windows may show an unknown-publisher or SmartScreen notice. The APK uses a development signing key and is debuggable. The offline installer and four virtual cameras passed on a clean Windows 11 x64 VM. See [testing coverage](../TESTING.md) for the checks and remaining limits.
 
 ## Install on Windows
 
