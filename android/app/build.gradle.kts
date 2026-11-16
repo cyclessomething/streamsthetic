@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -11,8 +13,30 @@ android {
         applicationId = "com.phonecam"
         minSdk = 30
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.2.5"
+        versionCode = 7
+        versionName = "0.2.6"
+    }
+
+    // Release signing: the owner's key lives outside the repository (Documents\Streamsthetic-signing, or the
+    // keystore.properties named by STREAMSTHETIC_KEYSTORE). Without it the release APK is simply left unsigned,
+    // so anyone can still build the project and sign it with their own key.
+    val keystoreProps = file(System.getenv("STREAMSTHETIC_KEYSTORE")
+        ?: "${System.getProperty("user.home")}/Documents/Streamsthetic-signing/keystore.properties")
+    val releaseKey = if (keystoreProps.isFile) Properties().apply { keystoreProps.inputStream().use { load(it) } } else null
+    signingConfigs {
+        if (releaseKey != null) create("release") {
+            storeFile = file(releaseKey.getProperty("storeFile"))
+            storePassword = releaseKey.getProperty("storePassword")
+            keyAlias = releaseKey.getProperty("keyAlias")
+            keyPassword = releaseKey.getProperty("keyPassword")
+        }
+    }
+    buildTypes {
+        release {
+            isDebuggable = false
+            isMinifyEnabled = false // the code is small; shrinking would risk breaking the QR scanner for little gain
+            signingConfig = signingConfigs.findByName("release")
+        }
     }
 
     compileOptions {

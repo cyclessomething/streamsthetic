@@ -478,11 +478,46 @@ public partial class MainWindow : Window
             var cable = names.FirstOrDefault(n => n.Contains("CABLE Input", StringComparison.OrdinalIgnoreCase));
             MicNoteText.Text = cable != null
                 ? "VB-Cable found. Choose \"" + cable + "\" above, then pick \"CABLE Output\" as the microphone in OBS or Discord. "
-                : "For a microphone input in OBS or a calling app, install a virtual audio cable such as VB-Cable. To listen locally, choose your speakers or headphones. ";
+                : "For a microphone in Discord or a calling app, install a virtual audio cable such as VB-Cable. OBS can use the audio source below instead. To listen locally, choose your speakers or headphones. ";
             MicNoteLink.Inlines.Clear(); if (cable == null) MicNoteLink.Inlines.Add("Get VB-Cable");
+            ShowObsPlugin();
         }
         Show([]);
         Task.Run(() => ReceiverController.ListAudioOutputs()).ContinueWith(t => { if (t.IsCompletedSuccessfully) Show(t.Result); }, TaskScheduler.FromCurrentSynchronizationContext());
+    }
+
+    /// <summary>The OBS audio source row: what state the plugin is in and the one action that makes sense.</summary>
+    private void ShowObsPlugin(string? note = null)
+    {
+        var state = ObsPlugin.Check();
+        (string hint, string button, bool enabled) = state switch
+        {
+            ObsPlugin.State.Added => ("Added. In OBS choose Sources, +, Streamsthetic phone microphone.", "Added", false),
+            ObsPlugin.State.Outdated => ("A newer version is ready. Close OBS, then update.", "Update in OBS", true),
+            ObsPlugin.State.NotAdded => ("The phone's sound as an OBS source, no cable needed.", "Add to OBS", true),
+            ObsPlugin.State.NoObs => ("Install OBS Studio first, then come back here.", "Add to OBS", false),
+            _ => ("The OBS plugin is missing from this installation. Reinstall Streamsthetic.", "Add to OBS", false),
+        };
+        ObsPluginHint.Text = note ?? hint;
+        ObsPluginButton.Content = button;
+        ObsPluginButton.IsEnabled = enabled;
+    }
+
+    private void OnAddObsPlugin(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ObsPlugin.Add();
+            ShowObsPlugin("Added. Restart OBS if it is open, then choose Sources, +, Streamsthetic phone microphone.");
+        }
+        catch (IOException) when (System.Diagnostics.Process.GetProcessesByName("obs64").Length > 0)
+        {
+            ShowObsPlugin("OBS is open and using the old version. Close OBS, then press the button again.");
+        }
+        catch (Exception ex)
+        {
+            ShowObsPlugin("Could not add it to OBS: " + ex.Message);
+        }
     }
 
     private void OnOpenLink(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
@@ -1228,7 +1263,7 @@ public partial class MainWindow : Window
             LinkState.Stopped or LinkState.Error => (NetworkLink ? null : _usbPhoneName) ?? "Not connected",
             _ => "Looking for the phone…",
         };
-        LinkText.Text = LinkName;
+        LinkText.Text = LinkName.Replace(" connection", ""); // the header column is narrow: "USB connection" was cut to "USB connecti..."
         SetReadout(FpsReadout, s.State is LinkState.Live or LinkState.WaitingForApp && s.Fps > 0 ? $"{s.Fps:0}" : null, "ReadoutHue1Brush");
         SetReadout(LatencyReadout, s.State is LinkState.Live or LinkState.WaitingForApp && !double.IsNaN(s.LatencyMs) ? $"{s.LatencyMs:0}" : null, "ReadoutHue2Brush");
         if (s.State is LinkState.Stopped or LinkState.Error)

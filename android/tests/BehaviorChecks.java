@@ -138,6 +138,13 @@ public final class BehaviorChecks {
         manualClock.advance(1000);
         check(displayed[0] == 180 && sensed[0] == 180, "stable sensor events continue when automatic mode resumes");
         manual.stop();
+
+        // Check for updates: the betas' tags carry a suffix; only the numbers decide
+        check(!UpdateVersion.isNewer("v0.2.5-beta.1", "0.2.5"), "same version with a beta suffix is not an update");
+        check(UpdateVersion.isNewer("v0.2.6-beta.1", "0.2.5"), "a higher patch version is an update");
+        check(UpdateVersion.isNewer("v0.3", "0.2.9"), "a higher minor version is an update even with fewer parts");
+        check(!UpdateVersion.isNewer("v0.2.4", "0.2.5"), "an older release is not an update");
+        check(!UpdateVersion.isNewer("nightly", "0.2.5"), "a tag without numbers is not an update");
         System.out.println("ANDROID BEHAVIOR CHECKS PASS (" + checks + " checks)");
     }
 }

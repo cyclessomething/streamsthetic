@@ -6,6 +6,7 @@ New-Item -ItemType Directory -Path $outputDir | Out-Null
     (Join-Path $androidRoot 'app/src/main/java/com/phonecam/OrientationDebouncer.java') `
     (Join-Path $androidRoot 'app/src/main/java/com/phonecam/SavedChoice.java') `
     (Join-Path $androidRoot 'app/src/main/java/com/phonecam/GitHubReport.java') `
+    (Join-Path $androidRoot 'app/src/main/java/com/phonecam/UpdateVersion.java') `
     (Join-Path $PSScriptRoot 'BehaviorChecks.java')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & java -cp $outputDir com.phonecam.BehaviorChecks

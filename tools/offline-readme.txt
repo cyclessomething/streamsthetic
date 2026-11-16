@@ -79,6 +79,13 @@ REQUIREMENTS
     Start with 1080p at 30 fps on additional phones. If video stutters, lower the bitrate,
     frame rate or resolution. Performance depends on the phones, PC and local network.
 
+  Phone microphone in OBS
+    In the phone app, turn on Settings > Streaming & power > Send the microphone to the PC.
+    In OBS, choose Sources > + > Streamsthetic phone microphone, then pick the camera.
+    No virtual cable is needed. Setup adds this source when OBS 30 or newer is installed;
+    otherwise use Settings > Audio > Add to OBS in the PC app.
+    Discord and calling apps still need a virtual audio cable such as VB-Cable.
+
 TROUBLESHOOTING
   In either app, open Report a problem, describe the issue and choose Continue on GitHub.
   Sign in, review the public issue draft and submit it to cyclessomething/streamsthetic.

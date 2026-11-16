@@ -150,7 +150,8 @@ public partial class MainWindow
             }
             PhoneForgetOneButton.IsEnabled = SelectedPhone.Endpoint != null;
             PhonesForgetButton.IsEnabled = _sessions.Assignments.Count > 0 || PairedList().Count > 0;
-            SelectedPhoneText.Text = $"Camera {_selectedSlot} — {SelectedPhone.Endpoint?.Name ?? SelectedPhone.Receiver.Status.PhoneName ?? "No phone connected"}";
+            SelectedPhoneText.Text = $"Camera {_selectedSlot}: {SelectedPhone.Endpoint?.Name ?? SelectedPhone.Receiver.Status.PhoneName ?? "no phone connected"}";
+            StopAllButton.IsEnabled = _sessions.All.Any(p => p.Running); // nothing to stop: the button rests
         }
         finally { _refreshingPhones = false; }
     }

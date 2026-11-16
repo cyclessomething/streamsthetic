@@ -50,9 +50,23 @@ try {
     if ((Get-ItemProperty -LiteralPath $key).InstallLocation -ne $target) { throw 'Incorrect install registration' }
     if (-not (Test-Path -LiteralPath (Join-Path $desktop 'Streamsthetic.lnk'))) { throw 'Missing shortcut' }
     Set-Content -LiteralPath (Join-Path $package 'Streamsthetic.exe') -Value 'second version'
-    & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoCamera -NoLaunch
+    # a file the new version no longer ships (like a leftover bundled runtime) must not survive the upgrade
+    Set-Content -LiteralPath (Join-Path $target 'hostfxr.dll') -Value 'left over'
+    New-Item -ItemType Directory -Force (Join-Path $package 'obs-plugin') | Out-Null
+    Set-Content -LiteralPath (Join-Path $package 'obs-plugin\streamsthetic-mic.dll') -Value 'plugin'
+    $obsRoot = Join-Path $testRoot 'obs-plugins'
+    & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoCamera -NoLaunch -ObsPluginRoot $obsRoot
     if ((Get-Content -LiteralPath (Join-Path $target 'Streamsthetic.exe') -Raw).Trim() -ne 'second version') { throw 'Upgrade did not replace application' }
-    Write-Output 'PASS: install and upgrade with apostrophes, spaces and ampersand in path'
+    if (Test-Path -LiteralPath (Join-Path $target 'hostfxr.dll')) { throw 'Upgrade kept a file the new version does not ship' }
+    if (-not (Test-Path -LiteralPath (Join-Path $target 'installation.json'))) { throw 'Upgrade cleanup removed the install receipt' }
+    Write-Output 'PASS: install and upgrade with apostrophes, spaces and ampersand in path; stale files removed'
+    $obsHere = (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\OBS Studio' -ErrorAction SilentlyContinue) -or (Test-Path (Join-Path $env:ProgramFiles 'obs-studio\bin\64bit\obs64.exe'))
+    $obsCopy = Join-Path $obsRoot 'streamsthetic-mic\bin\64bit\streamsthetic-mic.dll'
+    if ($obsHere) {
+        if (-not (Test-Path -LiteralPath $obsCopy)) { throw 'OBS is installed but the microphone source was not added' }
+        Write-Output 'PASS: OBS microphone source added to the OBS plugin folder'
+    } elseif (Test-Path -LiteralPath $obsCopy) { throw 'Added an OBS plugin without OBS' }
+    else { Write-Output 'SKIP: OBS not installed here, plugin copy not exercised' }
     # Replace only the test package's camera script: exercise child exit propagation without UAC or a camera.
     Set-Content -LiteralPath (Join-Path $package 'install-camera.ps1') -Value 'exit 7'
     Expect-Failure { & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoLaunch } 'camera setup did not finish'

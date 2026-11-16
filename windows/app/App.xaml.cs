@@ -89,9 +89,31 @@ public partial class App : Application
             return;
         }
 
+        // One app per Windows user: a second launch (Start Menu, desktop, a click while it sits in the tray) brings the
+        // running window forward and exits. Two copies fought over camera 1 ("this camera slot already has a receiver").
+        // Only user launches take part (no arguments, or --tray from "start with Windows"); test runs such as
+        // --simulate-crash must work next to the copy the owner is using.
+        var userLaunch = e.Args.All(a => a == "--tray");
+        if (userLaunch)
+        {
+            _single = new Mutex(true, @"Local\Streamsthetic.App", out var first);
+            _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, @"Local\Streamsthetic.Show");
+            if (!first)
+            {
+                if (!e.Args.Contains("--tray")) _showSignal.Set(); // a sign-in start never pops the window up
+                Shutdown(0);
+                return;
+            }
+        }
+
         WatchForCrashes();
         var main = new MainWindow();
         main.Show();
+        if (_showSignal is { } signal)
+            new Thread(() =>
+            {
+                while (signal.WaitOne()) main.Dispatcher.BeginInvoke(main.ShowFromTray);
+            }) { IsBackground = true, Name = "show-signal" }.Start();
 
         // Test of the crash recording (tools/diagnostics_selftest.ps1): Streamsthetic.exe --simulate-crash
         if (e.Args.Contains("--simulate-crash"))
@@ -120,6 +142,9 @@ public partial class App : Application
             e.SetObserved();
         };
     }
+
+    private Mutex? _single;            // held for the app's lifetime; Windows releases it when the process ends
+    private EventWaitHandle? _showSignal;
 
     private static int _crashed;
 

@@ -1,5 +1,5 @@
 # Camera setup (asks for administrator approval): installs or updates the Streamsthetic cameras.
-# Safe for any Windows user name, including names with an apostrophe (e.g. "Melissa's Pc"): the elevated steps are passed
+# Safe for any Windows user name, including names with an apostrophe (e.g. "Sam's PC"): the elevated steps are passed
 # encoded, not as a quoted command line (a quote in the path broke the old version and nothing was installed).
 $ErrorActionPreference = 'Continue'
 . (Join-Path $PSScriptRoot 'install-preflight.ps1')

@@ -359,8 +359,23 @@ class Ui(private val context: Context, skin: String) {
         isClickable = true
         isFocusable = true
         contentDescription = "$title. $description. Open settings category."
-        addView(body(cased(title), 15f, R.color.ink, bold = true).apply { typeface = titleFont })
-        addView(body(description, 12f), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        // a chevron at the right says "this opens a page" (the rows looked like static cards)
+        val words = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(body(cased(title), 15f, R.color.ink, bold = true).apply { typeface = titleFont })
+            addView(body(description, 12f), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(4) })
+        }
+        addView(LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(words, LinearLayout.LayoutParams(0, -2, 1f))
+            addView(TextView(context).apply {
+                text = "›"
+                textSize = 28f
+                setTextColor(look.ink2)
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            }, LinearLayout.LayoutParams(-2, -2).apply { marginStart = dp(12) })
+        }, LinearLayout.LayoutParams(-1, -2))
         setOnClickListener { onClick() }
         lightUp(this, look.sections[4], look.panelRadius, lift = false)
     }

@@ -9,7 +9,9 @@ param(
     [string]$UninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Streamsthetic',
     [string]$Desktop = [Environment]::GetFolderPath('Desktop'),
     [switch]$NoCamera,
-    [switch]$NoLaunch
+    [switch]$NoLaunch,
+    # OBS's per-computer plugin folder (OBS 30+); tests point it elsewhere
+    [string]$ObsPluginRoot = (Join-Path $env:ProgramData 'obs-studio\plugins')
 )
 $ErrorActionPreference = 'Stop'
 $source = $PSScriptRoot
@@ -56,6 +58,18 @@ Start-Sleep -Milliseconds 500
 New-Item -ItemType Directory -Force $Target | Out-Null
 if ((Resolve-Path $source).Path -ne (Resolve-Path $Target).Path) {
     Copy-Item (Join-Path $source '*') $Target -Recurse -Force
+    # Remove files an earlier version left behind. A bundled runtime (hostfxr.dll, ...) left over from the offline
+    # setup made a newer framework-dependent build stop at "You must install or update .NET".
+    $sourceRoot = (Resolve-Path $source).Path.TrimEnd('\')
+    $targetRoot = (Resolve-Path $Target).Path.TrimEnd('\')
+    $shipped = @{}
+    Get-ChildItem -LiteralPath $sourceRoot -Recurse -File | ForEach-Object { $shipped[$_.FullName.Substring($sourceRoot.Length + 1)] = $true }
+    Get-ChildItem -LiteralPath $targetRoot -Recurse -File | Where-Object {
+        $relative = $_.FullName.Substring($targetRoot.Length + 1)
+        $relative -ne 'installation.json' -and -not $shipped.ContainsKey($relative)
+    } | Remove-Item -Force -ErrorAction SilentlyContinue
+    Get-ChildItem -LiteralPath $targetRoot -Recurse -Directory | Sort-Object { $_.FullName.Length } -Descending |
+        Where-Object { -not (Get-ChildItem -LiteralPath $_.FullName -Force) } | Remove-Item -Force -ErrorAction SilentlyContinue
 }
 # The uninstaller verifies this receipt before removing the exact installation folder.
 [ordered]@{ Target = $Target; StartMenu = $StartMenu; Desktop = $Desktop; UninstallKey = $UninstallKey } |
@@ -91,6 +105,22 @@ $props = @{
 foreach ($k in $props.Keys) { Set-ItemProperty -Path $UninstallKey -Name $k -Value $props[$k] }
 Set-ItemProperty -Path $UninstallKey -Name NoModify -Value 1 -Type DWord
 Set-ItemProperty -Path $UninstallKey -Name NoRepair -Value 1 -Type DWord
+
+# The phone microphone as an OBS audio source, when OBS is installed (no administrator rights needed; OBS loads it
+# the next time it starts). Not essential: a failure is reported and the app can add it later (Settings > Audio).
+$obsPlugin = Join-Path $Target 'obs-plugin\streamsthetic-mic.dll'
+$obsInstalled = (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\OBS Studio' -ErrorAction SilentlyContinue) -or
+    (Test-Path -LiteralPath (Join-Path $env:ProgramFiles 'obs-studio\bin\64bit\obs64.exe'))
+if ((Test-Path -LiteralPath $obsPlugin) -and $obsInstalled) {
+    try {
+        $obsTarget = Join-Path $ObsPluginRoot 'streamsthetic-mic\bin\64bit'
+        New-Item -ItemType Directory -Force $obsTarget | Out-Null
+        Copy-Item -LiteralPath $obsPlugin -Destination $obsTarget -Force
+        Write-Output 'Added "Streamsthetic phone microphone" to OBS (restart OBS if it is open).'
+    } catch {
+        Write-Warning "Could not add the microphone source to OBS: $($_.Exception.Message). Close OBS, then use Settings > Audio > Add to OBS in Streamsthetic."
+    }
+}
 
 if (-not $NoCamera) {
     # A separate native PowerShell process gives the camera script's exit an unambiguous result.

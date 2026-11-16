@@ -1,0 +1,14 @@
+; The only obs.dll functions the plugin calls. `lib /def:obs.def` turns this into the import library, so the build
+; needs the libobs headers but not an OBS build tree.
+LIBRARY obs.dll
+EXPORTS
+    blog
+    obs_data_get_int
+    obs_data_set_default_int
+    obs_properties_add_list
+    obs_properties_add_text
+    obs_properties_create
+    obs_property_list_add_int
+    obs_register_source_s
+    obs_source_output_audio
+    os_gettime_ns

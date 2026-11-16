@@ -5,7 +5,8 @@ param(
     [string]$UninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Streamsthetic',
     [string]$Desktop = [Environment]::GetFolderPath('Desktop'),
     [switch]$RemoveCamera,
-    [switch]$KeepSettings
+    [switch]$KeepSettings,
+    [string]$ObsPluginRoot = (Join-Path $env:ProgramData 'obs-studio\plugins')
 )
 $ErrorActionPreference = 'Stop'
 $Target = [IO.Path]::GetFullPath($Target).TrimEnd('\')
@@ -70,6 +71,14 @@ foreach ($name in 'Streamsthetic', 'PhoneCam') {
 $entry = Get-ItemProperty -LiteralPath $UninstallKey -ErrorAction SilentlyContinue
 if ($entry -and $entry.InstallLocation -eq $Target) { Remove-Item -LiteralPath $UninstallKey -Recurse -Force }
 $defaultTarget = [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'Programs\Streamsthetic')).TrimEnd('\')
+# the OBS audio source goes with the app (only the real installation's, or the one a test points at)
+if ($Target -eq $defaultTarget -or $PSBoundParameters.ContainsKey('ObsPluginRoot')) {
+    $obsPluginFolder = Join-Path $ObsPluginRoot 'streamsthetic-mic'
+    if (Test-Path -LiteralPath $obsPluginFolder) {
+        try { Remove-Item -LiteralPath $obsPluginFolder -Recurse -Force }
+        catch { Write-Warning 'The OBS microphone source could not be removed while OBS is open. Close OBS and delete C:\ProgramData\obs-studio\plugins\streamsthetic-mic.' }
+    }
+}
 if (-not $KeepSettings -and $Target -eq $defaultTarget) {
     foreach ($name in 'Streamsthetic', 'PhoneCam') {
         $settingsPath = [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA $name))

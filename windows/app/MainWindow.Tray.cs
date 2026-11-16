@@ -43,7 +43,7 @@ public partial class MainWindow
         if (cli.Contains("--tray") && _trayOnClose) ContentRendered += (_, _) => Hide();
     }
 
-    private void ShowFromTray()
+    internal void ShowFromTray()
     {
         Show();
         if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;

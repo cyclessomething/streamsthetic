@@ -605,6 +605,9 @@
                             </Grid.ColumnDefinitions>
                             <ContentPresenter VerticalAlignment="Center" Content="{TemplateBinding SelectionBoxItem}"
                                               ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+                            <!-- nothing chosen yet (camera boxes before a phone reports): Tag says why instead of an empty box -->
+                            <TextBlock x:Name="Placeholder" Visibility="Collapsed" VerticalAlignment="Center" Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                       Foreground="{DynamicResource Ink3Brush}" FontFamily="{DynamicResource SansFont}" FontWeight="Normal" />
                             <Path Grid.Column="1" Data="M0,0 L4,4 L8,0" Stroke="{DynamicResource Ink2Brush}" StrokeThickness="1.6" Margin="8,0,0,0" VerticalAlignment="Center" />
                         </Grid>
                         <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True"
@@ -625,6 +628,9 @@
                         </Trigger>
                         <Trigger Property="IsDropDownOpen" Value="True">
                             <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                        </Trigger>
+                        <Trigger Property="SelectedItem" Value="{x:Null}">
+                            <Setter TargetName="Placeholder" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45" />

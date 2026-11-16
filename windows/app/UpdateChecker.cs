@@ -18,12 +18,28 @@ public static class UpdateChecker
     public static string CurrentVersion =>
         (Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0").Split('+')[0];
 
+    /// <summary>
+    /// The official releases. A list, not ".../releases/latest": GitHub's "latest" skips pre-releases, and the betas are
+    /// pre-releases (it answered 404). A fork points update-feed.txt or STREAMSTHETIC_UPDATE_FEED at its own repository.
+    /// </summary>
+    public const string DefaultFeed = "https://api.github.com/repos/cyclessomething/streamsthetic/releases?per_page=10";
+
     private static string? FeedUrl()
     {
         var env = Environment.GetEnvironmentVariable("STREAMSTHETIC_UPDATE_FEED");
         if (!string.IsNullOrWhiteSpace(env)) return env.Trim();
         var file = Path.Combine(AppContext.BaseDirectory, "update-feed.txt");
-        return File.Exists(file) ? File.ReadAllText(file).Trim() : null;
+        return File.Exists(file) ? File.ReadAllText(file).Trim() : DefaultFeed;
+    }
+
+    /// <summary>The newest published release: the object itself ("latest" feed) or the first non-draft in a list.</summary>
+    public static JsonElement? NewestRelease(JsonElement root)
+    {
+        if (root.ValueKind == JsonValueKind.Object) return root;
+        if (root.ValueKind != JsonValueKind.Array) return null;
+        foreach (var release in root.EnumerateArray())
+            if (!(release.TryGetProperty("draft", out var draft) && draft.ValueKind == JsonValueKind.True)) return release;
+        return null;
     }
 
     /// <summary>Compares dotted versions ("v1.2.3" or "1.2"): true when <paramref name="latest"/> is newer than <paramref name="current"/>.</summary>
@@ -46,8 +62,9 @@ public static class UpdateChecker
             using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
             http.DefaultRequestHeaders.UserAgent.ParseAdd("Streamsthetic-update-check");
             using var doc = JsonDocument.Parse(await http.GetStringAsync(feed));
-            var tag = doc.RootElement.GetProperty("tag_name").GetString() ?? "";
-            var url = doc.RootElement.TryGetProperty("html_url", out var u) ? u.GetString() : null;
+            if (NewestRelease(doc.RootElement) is not JsonElement release) return new(true, false, "No releases have been published yet.", null);
+            var tag = release.GetProperty("tag_name").GetString() ?? "";
+            var url = release.TryGetProperty("html_url", out var u) ? u.GetString() : null;
             return IsNewer(tag, CurrentVersion)
                 ? new(true, true, $"Version {tag.TrimStart('v')} is available (you have {CurrentVersion}).", url)
                 : new(true, false, $"You have the latest version ({CurrentVersion}).", null);

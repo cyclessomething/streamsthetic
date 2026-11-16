@@ -159,7 +159,7 @@ class MainActivity : Activity() {
                 picker("Resolution", "Resolution", resolutions),
                 picker("Frame rate", "Frame rate", frameRates),
                 picker("Quality", "Bitrate", bitrates))),
-            page(ui.panel(2, "02", "Orientation", rotationControls())),
+            page(ui.panel(2, "01", "Orientation", rotationControls())),
             buildSettingsPage(savedInstanceState),
         )
         tabBar = ui.TabBar(listOf(
@@ -203,6 +203,11 @@ class MainActivity : Activity() {
             addView(debugGuide, android.widget.FrameLayout.LayoutParams(-1, -1))
         })
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // status and navigation bar icons follow the page: dark icons on a light page (they were white on the light paper and the clock vanished)
+        val paper = ui.color(R.color.paper)
+        val lightPage = (0.299 * android.graphics.Color.red(paper) + 0.587 * android.graphics.Color.green(paper) + 0.114 * android.graphics.Color.blue(paper)) > 150
+        val bars = android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+        window.insetsController?.setSystemBarsAppearance(if (lightPage) bars else 0, bars)
         // a redraw (new Appearance, screen rotation) recreates the screen with the same launch intent: only a
         // fresh launch may start the stream, or the redraw would restart it
         if (savedInstanceState == null) {
@@ -354,6 +359,34 @@ class MainActivity : Activity() {
     }
 
     /** Opens a web search for this phone's make and model: the way to find the right menu on any phone. */
+    /** Help > Updates: one button that checks GitHub, then (only when there is one) opens the newer release's page. */
+    private fun updatesSection(): View {
+        val version = try { packageManager.getPackageInfo(packageName, 0).versionName ?: "?" } catch (_: Exception) { "?" }
+        val status = ui.body("You have version $version.", 13f)
+        var releasePage: String? = null
+        lateinit var button: TextView
+        button = ui.ghostButton("Check for updates") {
+            releasePage?.let { url ->
+                try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))) } catch (_: Exception) {}
+                return@ghostButton
+            }
+            button.isEnabled = false
+            status.text = "Checking..."
+            Thread {
+                val result = UpdateCheck.check(version)
+                runOnUiThread {
+                    status.text = result.message
+                    releasePage = if (result.newer) result.url else null
+                    button.text = ui.cased(if (releasePage != null) "Open download page" else "Check for updates")
+                    button.isEnabled = true
+                }
+            }.start()
+        }
+        return ui.settingsSection(
+            ui.body(ui.cased("Updates"), 15f, R.color.ink, bold = true).apply { typeface = ui.titleFont },
+            status, button)
+    }
+
     private fun openHelp(what: String) {
         val query = android.net.Uri.encode("how to $what ${Build.MANUFACTURER} ${Build.MODEL}")
         try { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.google.com/search?q=$query"))) } catch (_: Exception) {}
@@ -733,12 +766,13 @@ class MainActivity : Activity() {
                 permissionRow("Microphone", "Required only when sending microphone audio", Manifest.permission.RECORD_AUDIO, "Optional"),
                 permissionRow("Unrestricted battery", "Helps prevent battery restrictions from interrupting streams", null, "Optional"))),
             page("Help & requirements", ui.settingsSection(
-                ui.body("Requirements", 15f, R.color.ink, bold = true),
+                ui.body(ui.cased("Requirements"), 15f, R.color.ink, bold = true).apply { typeface = ui.titleFont },
                 ui.body(explanations.getValue("Requirements"), 13f)),
                 ui.settingsSection(
-                    ui.body("Report a problem", 15f, R.color.ink, bold = true),
+                    ui.body(ui.cased("Report a problem"), 15f, R.color.ink, bold = true).apply { typeface = ui.titleFont },
                     ui.body("Open a public GitHub issue draft, then review and submit it yourself. Diagnostic sharing is optional and may include private connection details; review it before sharing.", 13f),
-                    ui.ghostButton("Report a problem") { showReportDialog() })),
+                    ui.ghostButton("Report a problem") { showReportDialog() }),
+                updatesSection()),
         )
         val container = android.widget.FrameLayout(this).apply {
             settingsPages.forEach { addView(it, android.widget.FrameLayout.LayoutParams(-1, -1)) }
@@ -913,7 +947,7 @@ class MainActivity : Activity() {
         val names = listOf("System", "Light", "Dark")
         val chips = ui.ChipRow(names, 4, 9)
         // Gamer is always dark: the choice does not apply
-        if (ui.skinName == "Gamer") { chips.isEnabled = false; return LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; addView(labelled("Appearance", chips)); addView(ui.body("The Gamer theme uses dark appearance.", 13f)) } }
+        if (ui.skinName == "Gamer") { chips.isEnabled = false; return LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; addView(labelled("Light or dark", chips)); addView(ui.body("The Gamer theme uses dark appearance.", 13f)) } }
         chips.setSelection(prefs.getInt("Appearance", 0).coerceIn(0, names.size - 1))
         chips.onSelected = { position ->
             if (position != prefs.getInt("Appearance", 0)) {
@@ -927,7 +961,7 @@ class MainActivity : Activity() {
                 getSystemService(android.app.UiModeManager::class.java).setApplicationNightMode(mode)
             }
         }
-        return labelled("Appearance", chips)
+        return labelled("Light or dark", chips)
     }
 
     /** Text size / icon size: saved, and the screen is redrawn at the new size (streaming keeps running in its service). */
@@ -979,7 +1013,7 @@ class MainActivity : Activity() {
             value.text = "$level%"
             val past = level > DIM_RECOMMENDED
             value.setTextColor(if (past) warn else ui.color(R.color.ink))
-            note.text = if (past) "Higher brightness uses more power and can increase heat." else "Use $DIM_RECOMMENDED% or less to reduce power use. The red section marks higher brightness."
+            note.text = if (past) "Higher brightness uses more power and can increase heat." else "Use $DIM_RECOMMENDED% or less to reduce power use. The line on the slider marks $DIM_RECOMMENDED%."
             note.setTextColor(if (past) warn else ui.look.ink3)
             barRef?.thumbTintList = android.content.res.ColorStateList.valueOf(if (past) warn else ui.color(R.color.accent))
         }
@@ -1067,13 +1101,13 @@ class MainActivity : Activity() {
         "Frame rate" to "How many pictures are shown per second.\n\n60: smoother movement, but more work for the phone and PC. Performance depends on the devices, resolution and connection.\n\n30: fewer frames to process and more time to collect light, which can help in a dim room. Try 30 if 60 stutters.",
         "Bitrate" to "How much data the video uses, in megabits per second (Mbps). Higher values preserve fine detail and reduce blocky patches during movement, but need more bandwidth.\n\nStarting points:\n• 1080p: 20 Mbps\n• 4K: 40 to 60 Mbps\n\nUSB: use a data cable and a reliable port.\n\nWi-Fi: keep a strong connection to your router. A 5 GHz connection and a wired PC can help. Other devices and nearby networks can affect performance.\n\nYour internet plan does not set the speed between the phone and PC. An internet speed test does not measure this local connection.\n\nIf the picture stutters, lower Bitrate. You can also lower the frame rate or resolution.",
         "Theme" to "Changes the colors, shapes and fonts in this app. It does not affect your video.",
-        "Appearance" to "Light, dark, or match your phone's setting. This only changes the app, not your video.",
+        "Light or dark" to "Light, dark, or match your phone's setting. This only changes the app, not your video.",
         "HeatAuto" to "When Android reports elevated temperature, Streamsthetic reduces bitrate, resolution or frame rate to lower processing load. After two minutes at a lower thermal level, it restores your chosen settings. Turning this off disables these automatic adjustments; Android may still limit performance.",
         "Dim" to "While streaming, the screen dims so the phone stays cooler and uses less battery. The camera keeps working.",
         "Text size" to "Makes all text in this app larger, on top of your phone's own text size setting. The screen redraws right away and streaming is not interrupted.",
         "Icon size" to "Makes icons, buttons and spacing larger so they are easier to see and tap. The screen redraws right away and streaming is not interrupted.",
         "Dim level" to "Sets screen brightness while dimming is enabled, from 2% to 100%. Lower brightness reduces power use and heat. Start at 60% or less and adjust for readability. Drag the slider to preview the brightness.",
-        "Mic" to "Sends microphone audio to your PC while streaming. Off by default.\n\nChoose speakers or headphones in the PC app to monitor audio. Streamsthetic does not create a Windows microphone device. To use the audio in another app, configure Windows audio routing, such as a virtual audio cable: select the cable's playback endpoint in Streamsthetic and its recording endpoint in the receiving app.\n\nRestart the stream after changing this setting.",
+        "Mic" to "Sends microphone audio to your PC while streaming. Off by default.\n\nOBS: add the source Streamsthetic phone microphone (Sources, +) and pick this phone's camera. No cable needed.\n\nDiscord or calling apps: Streamsthetic does not create a Windows microphone, so use a virtual audio cable. Pick the cable in the PC app (Settings, Audio) and the cable's microphone in the other app.\n\nRestart the stream after changing this setting.",
         "Auto-off" to "Stops streaming after the selected idle period to save battery. The phone is idle when no PC is connected or the PC reports that no app is using the Streamsthetic camera. Choose Off to disable the timer. A notification confirms an automatic stop if notifications are allowed.",
         "Auto-rotate" to "Automatically follows the phone's orientation after you hold it steady for about a second. When off, use Left or Right to rotate the picture by 90°. Flat or diagonal positions do not trigger a turn.",
     )

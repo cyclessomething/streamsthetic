@@ -30,6 +30,7 @@
 #include <dbghelp.h>
 #include <mmdeviceapi.h>
 #include <audioclient.h>
+#include "../obs-plugin/shared_audio.h"
 #include <functiondiscoverykeys_devpkey.h>
 #pragma comment(lib, "dbghelp.lib")
 
@@ -1132,6 +1133,49 @@ private:
     int64_t _lastLog = 0;
 };
 
+// ---- phone microphone for the OBS plugin: the same samples, written to shared memory for this camera slot ------------
+// (layout and rules in windows/obs-plugin/shared_audio.h). Lives for the whole process, so a reconnect keeps the block.
+class SharedAudioWriter
+{
+public:
+    void Write(unsigned slot, const std::vector<uint8_t>& pcm)
+    {
+        if (!_block && !Open(slot)) return;
+        const int16_t* samples = reinterpret_cast<const int16_t*>(pcm.data());
+        const size_t count = pcm.size() / 2;
+        const int64_t start = _block->written;
+        for (size_t i = 0; i < count; i++) _block->samples[(start + int64_t(i)) % STREAMSTHETIC_AUDIO_RING] = samples[i];
+        InterlockedExchange64(reinterpret_cast<volatile LONG64*>(&_block->written), start + int64_t(count)); // publish after the samples
+    }
+
+private:
+    bool Open(unsigned slot)
+    {
+        if (_failed) return false;
+        wchar_t name[64];
+        swprintf_s(name, STREAMSTHETIC_AUDIO_NAME, slot);
+        _mapping.reset(CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, sizeof(StreamstheticSharedAudio), name));
+        const bool existed = GetLastError() == ERROR_ALREADY_EXISTS; // an OBS source still holds it: keep counting from there
+        if (!_mapping) { _failed = true; wprintf(L"audio: no shared block for OBS (%lu)\n", GetLastError()); return false; }
+        _block = static_cast<StreamstheticSharedAudio*>(MapViewOfFile(_mapping.get(), FILE_MAP_WRITE, 0, 0, sizeof(StreamstheticSharedAudio)));
+        if (!_block) { _failed = true; _mapping.reset(); return false; }
+        if (!existed || _block->magic != STREAMSTHETIC_AUDIO_MAGIC)
+        {
+            _block->sampleRate = STREAMSTHETIC_AUDIO_RATE;
+            _block->channels = 1;
+            _block->ring = STREAMSTHETIC_AUDIO_RING;
+            _block->written = 0;
+            _block->magic = STREAMSTHETIC_AUDIO_MAGIC;
+        }
+        wprintf(L"audio: phone microphone available to OBS (camera %u)\n", slot);
+        return true;
+    }
+
+    wil::unique_handle _mapping;
+    StreamstheticSharedAudio* _block = nullptr;
+    bool _failed = false;
+};
+
 struct Options
 {
     unsigned slot = 1;
@@ -1541,6 +1585,7 @@ int Run(const Options& options)
 
     // Streams one connection (or the replay file) until it ends, a read fails or the deadline passes.
     // Returns how many packets arrived: 0 means the connection never carried a stream.
+    SharedAudioWriter sharedAudio;
     auto streamFrom = [&](Source& source) {
         currentSource = &source;
         auto forgetSource = wil::scope_exit([&] { currentSource = nullptr; });
@@ -1581,6 +1626,13 @@ int Run(const Options& options)
             if (packet.type == TYPE_REJECT) throw std::runtime_error("pairing code refused");
             if (packet.type == TYPE_AUDIO)
             {
+                if (options.realtime) // replay: sound at the speed it was recorded, like frames below
+                {
+                    if (firstPts < 0) { firstPts = packet.ptsUs; firstWall = rx; }
+                    auto due = firstWall + (packet.ptsUs - firstPts);
+                    while (NowUs() < due) Sleep(1);
+                }
+                sharedAudio.Write(options.slot, packet.payload); // for the OBS plugin, whatever the output setting
                 if (!options.audioDevice.empty())
                 {
                     if (!audioTried) { audioTried = true; audioOk = audio.Open(options.audioDevice); }
