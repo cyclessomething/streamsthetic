@@ -1,5 +1,3 @@
-[Guide](README.md) / Using the apps
-
 # Use multiple phones
 
 Streamsthetic supports up to four phone cameras at once. Each phone appears as a separate Windows camera, so you can add different angles in OBS or another app.
@@ -11,6 +9,8 @@ Streamsthetic supports up to four phone cameras at once. Each phone appears as a
 3. Press **Start** in Streamsthetic on each phone.
 4. Open **Phones** on the PC and choose **Find phones**.
 5. Select a phone in the results and choose **Connect selected phone**. Repeat for the other phones.
+
+![The Phones tab with four camera slots](images/pc/tab-phones.png){ loading=lazy }
 
 New phones fill available camera slots automatically. Selecting a camera row chooses which phone to preview and control; it does not move a phone into that slot. Assignments are remembered for later connections.
 
@@ -27,7 +27,7 @@ Windows or your receiving app may append **(Windows Virtual Camera)** to these n
 
 Select its row under **Your phones**. The preview and **Camera** and **Picture** controls now follow that phone. Changing the selected row leaves the other cameras running.
 
-Extra cameras start at 1080p, 30 fps and 10 Mbps. Increase settings only if the phones, network and PC can keep up. Reduce resolution, frame rate or bitrate if video stutters or a phone gets warm. Microphone audio comes from camera 1 only.
+Extra cameras start at 1080p, 30 fps and 10 Mbps. Increase settings only if the phones, network and PC can keep up. Reduce resolution, frame rate or bitrate if video stutters or a phone gets warm. In OBS each phone's sound has its own **Streamsthetic phone microphone** source; for other apps, microphone audio comes from camera 1 only.
 
 ## Stop or remove a phone
 
@@ -44,4 +44,4 @@ Forgetting removes a saved entry; it does not revoke pairing. To replace the old
 
 If automatic connection is enabled, remembered phones can reconnect when they start streaming. A camera you manually stop on the PC stays stopped until you start it again.
 
-Related: [Windows app](windows.md) · [Audio](audio.md) · [Camera controls](camera-controls.md) · [Troubleshooting](troubleshooting.md) · [Guide and downloads](../../README.md)
+Related: [Windows app](windows.md) · [Audio](audio.md) · [Camera controls](camera-controls.md) · [Troubleshooting](troubleshooting.md)

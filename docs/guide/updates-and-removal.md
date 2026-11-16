@@ -1,5 +1,3 @@
-[Guide](README.md) / Help and maintenance
-
 # Update or uninstall
 
 Use the [GitHub releases page](https://github.com/cyclessomething/streamsthetic/releases) to find downloads and read what changed. Keep the Windows and Android apps on matching releases where possible.
@@ -14,7 +12,7 @@ Use the [GitHub releases page](https://github.com/cyclessomething/streamsthetic/
 
 You do not need to uninstall first. The installer replaces app files while keeping saved app settings.
 
-**Settings → Help → Check for updates** checks a configured release feed. The current beta has no update feed configured, so use GitHub to check for downloads. This control does not install updates automatically.
+**Settings → Help → Check for updates** asks GitHub whether a newer version exists (beta releases included) and links to it. It does not download or install anything by itself. The phone has the same check under **Settings → Help & requirements → Updates**.
 
 ## Update Android
 
@@ -22,13 +20,13 @@ You do not need to uninstall first. The installer replaces app files while keepi
 2. Download the new APK from the same release page.
 3. Open it and choose to update the existing app.
 
-An in-place update requires a compatible signing key and version. The current APK uses a development signing key. If a future release changes that key, Android may require uninstalling the beta first; that removes saved phone settings and pairing. Follow that release's instructions rather than deleting the app immediately if an update fails.
+From 0.2.6 on, the APK is signed with the Streamsthetic release key, and later versions install over it. Versions up to 0.2.5 used a temporary testing key: Android will not update those in place. Uninstall the old app once (this removes its settings and pairing), install the new APK, then pair again.
 
 ## Uninstall the Windows app
 
 Open **Windows Settings → Apps → Installed apps**, find **Streamsthetic**, and select **Uninstall**.
 
-The standard uninstall removes the app, shortcuts and its saved settings from the default installation. It leaves the Windows camera components installed. The phone app is separate and is not removed.
+The standard uninstall removes the app, shortcuts, the OBS microphone source and its saved settings from the default installation. It leaves the Windows camera components installed. The phone app is separate and is not removed.
 
 ## Remove the Windows cameras too
 

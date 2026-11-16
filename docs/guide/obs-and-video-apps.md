@@ -1,5 +1,3 @@
-[Guide](README.md) / Getting started
-
 # Use Streamsthetic in video apps
 
 First [connect the phone](connect.md) and confirm that Streamsthetic receives video.
@@ -26,8 +24,8 @@ Some calling apps mirror their own preview. Check the picture received by anothe
 
 1. Connect additional phones using the [multiple-phone guide](multiple-phones.md).
 2. Add a separate OBS Video Capture Device source for each output: **Streamsthetic 2**, **Streamsthetic 3** or **Streamsthetic 4**, with the Windows Virtual Camera suffix.
-3. Configure microphone audio separately using the [audio guide](audio.md). Selecting the camera does not create a Windows microphone input.
+3. For the phone's sound in OBS, add the **Streamsthetic phone microphone** source (no cable needed): see the [audio guide](audio.md). Selecting the camera does not create a Windows microphone input for other apps.
 
 The PC preview may pause while another app uses the camera. **Show preview anyway** resumes it; a paused preview alone does not mean the camera output has stopped.
 
-See [troubleshooting](troubleshooting.md), [installation](install.md), [Windows settings](windows.md), [Android settings](android.md), or the [README](../../README.md).
+See [troubleshooting](troubleshooting.md), [installation](install.md), [Windows settings](windows.md) or [Android settings](android.md).

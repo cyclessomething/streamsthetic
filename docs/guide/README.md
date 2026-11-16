@@ -4,7 +4,9 @@ Turn your Android phone into a Windows camera. This guide takes you from install
 
 **New here?** [Install Streamsthetic](install.md), [connect your phone](connect.md), then [select it in OBS or another video app](obs-and-video-apps.md).
 
-This guide covers **0.2.4 / v0.2.4-beta.1** on Windows 11 x64 and Android 11 or later. The current download is a testing release. See [requirements and installation](install.md) and [testing coverage](../TESTING.md) before installing.
+This guide covers **0.2.6 (v0.2.6-beta.1)** on Windows 11 x64 and Android 11 or later. The current download is a testing release. See [requirements and installation](install.md) and [testing coverage](https://github.com/cyclessomething/streamsthetic/blob/main/docs/TESTING.md) before installing.
+
+![The Streamsthetic PC app showing a live phone camera](images/pc/main-demo.png){ loading=lazy }
 
 ## Getting started
 
@@ -27,7 +29,7 @@ This guide covers **0.2.4 / v0.2.4-beta.1** on Windows 11 x64 and Android 11 or 
 | Guide | What you will learn |
 | --- | --- |
 | [Camera controls](camera-controls.md) | Set quality, focus, exposure, rotation and mirroring. |
-| [Microphone audio](audio.md) | Send the phone microphone to your PC and route it to another app. |
+| [Microphone audio](audio.md) | Send the phone microphone to OBS with no cable, or to another app. |
 
 ## Help and maintenance
 
@@ -48,6 +50,4 @@ This guide covers **0.2.4 / v0.2.4-beta.1** on Windows 11 x64 and Android 11 or 
 | **Frame rate (fps)** | How many images are sent each second. Higher values can make motion smoother. |
 | **Bitrate (Mbps)** | The amount of video data sent each second. Higher values use more bandwidth. |
 
-Use the **Guide** link at the top of any page to return here. For development rather than everyday use, see [Build](../BUILD.md) and [Testing](../TESTING.md).
-
-The organization follows the short, topic-based approach of the [Outline guide](https://docs.getoutline.com/s/guide). All instructions here describe Streamsthetic.
+For development rather than everyday use, see [Build](https://github.com/cyclessomething/streamsthetic/blob/main/docs/BUILD.md) and [Testing](https://github.com/cyclessomething/streamsthetic/blob/main/docs/TESTING.md).

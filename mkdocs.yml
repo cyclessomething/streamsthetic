@@ -1,0 +1,75 @@
+# Streamsthetic user guide, published to GitHub Pages by .github/workflows/docs.yml.
+# Local preview:  pip install -r docs/requirements.txt  then  mkdocs serve
+site_name: Streamsthetic guide
+site_description: Use your Android phone as a camera (and microphone) for Windows apps such as OBS and Discord.
+site_url: https://cyclessomething.github.io/streamsthetic/
+repo_url: https://github.com/cyclessomething/streamsthetic
+repo_name: cyclessomething/streamsthetic
+edit_uri: edit/main/docs/guide/
+docs_dir: docs/guide
+site_dir: site
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/favicon.png
+  font:
+    text: Archivo          # the apps' own typefaces
+    code: IBM Plex Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle: { icon: material/weather-night, name: Dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle: { icon: material/weather-sunny, name: Light mode }
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.footer      # previous / next page links
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+
+extra_css:
+  - assets/streamsthetic.css
+
+plugins:
+  - search
+  - glightbox:              # click a screenshot to see it full size
+      zoomable: true
+      skip_classes: [no-zoom]
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc: { permalink: true }
+  - pymdownx.details
+  - pymdownx.superfences
+
+nav:
+  - Home: README.md
+  - Getting started:
+      - Install: install.md
+      - Connect your phone: connect.md
+      - OBS and other video apps: obs-and-video-apps.md
+  - Using the apps:
+      - Windows app: windows.md
+      - Android app: android.md
+      - Multiple phones: multiple-phones.md
+  - Picture and sound:
+      - Camera controls: camera-controls.md
+      - Microphone audio: audio.md
+  - Help:
+      - Troubleshooting: troubleshooting.md
+      - Update or uninstall: updates-and-removal.md
+      - Privacy and reports: privacy.md

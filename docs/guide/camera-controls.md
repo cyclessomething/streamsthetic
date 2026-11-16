@@ -1,8 +1,6 @@
-[Guide](README.md) / Picture and sound
-
 # Adjust the camera picture
 
-This guide covers Streamsthetic 0.2.4 beta. Camera capabilities vary by phone; a listed lens or setting is not a guarantee that every device supports it.
+Camera capabilities vary by phone; a listed lens or setting is not a guarantee that every device supports it.
 
 ## Choose the phone to adjust
 
@@ -35,6 +33,8 @@ Windows **Reset phone camera settings** returns to Main 1x, 1080p, 60 fps, 20 Mb
 
 Open Windows **Picture** while connected.
 
+![The Picture tab on the PC](images/pc/tab-picture.png){ loading=lazy }
+
 | Control | What it changes |
 | --- | --- |
 | **Brightness** | Exposure compensation relative to automatic exposure. Raise it for a dark subject; lower it for washed-out highlights. **0 EV** leaves automatic exposure unchanged. The phone supplies the available range. This is not a manual shutter-speed control. |
@@ -64,4 +64,4 @@ For a horizontal flip, use **Mirror → On** in Windows **Picture**. This change
 
 ## Related guides
 
-[Overview](../../README.md) · [Connect](connect.md) · [Android app](android.md) · [Windows app](windows.md) · [Audio](audio.md) · [Troubleshooting](troubleshooting.md)
+[Overview](README.md) · [Connect](connect.md) · [Android app](android.md) · [Windows app](windows.md) · [Audio](audio.md) · [Troubleshooting](troubleshooting.md)

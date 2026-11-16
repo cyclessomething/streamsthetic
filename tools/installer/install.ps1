@@ -113,6 +113,9 @@ $obsInstalled = (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\OBS Studio' -Erro
     (Test-Path -LiteralPath (Join-Path $env:ProgramFiles 'obs-studio\bin\64bit\obs64.exe'))
 if ((Test-Path -LiteralPath $obsPlugin) -and $obsInstalled) {
     try {
+        # Only a real Windows DLL ("MZ" header) goes into OBS: a broken file there stops OBS loading the source.
+        $head = [IO.File]::ReadAllBytes($obsPlugin) | Select-Object -First 2
+        if ($head.Count -lt 2 -or $head[0] -ne 0x4D -or $head[1] -ne 0x5A) { throw 'the plugin file in this package is damaged' }
         $obsTarget = Join-Path $ObsPluginRoot 'streamsthetic-mic\bin\64bit'
         New-Item -ItemType Directory -Force $obsTarget | Out-Null
         Copy-Item -LiteralPath $obsPlugin -Destination $obsTarget -Force

@@ -19,7 +19,7 @@ The Windows installer is unsigned; Windows may display an unknown-publisher or S
 
 ## Get started
 
-**[Read the Streamsthetic user guide](docs/guide/README.md)** for installation, connections, every app section, picture and audio controls, multiple phones, and troubleshooting.
+**[Read the Streamsthetic user guide](https://cyclessomething.github.io/streamsthetic/)** (also in [docs/guide](docs/guide/README.md)) for installation, connections, every app section, picture and audio controls, multiple phones, and troubleshooting.
 
 1. Run the Windows offline installer. Camera installation requires administrator approval. You do not need Visual Studio, an Android SDK or a separately installed .NET runtime to use this package.
 2. Install the APK on your phone, allowing installation from your browser or file manager if Android requests it. Open Streamsthetic and allow camera access. Notifications are recommended; microphone access and unrestricted battery are optional.

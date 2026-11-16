@@ -1,8 +1,6 @@
-[Guide](README.md) / Using the apps
-
 # Use the Android app
 
-Streamsthetic 0.2.5 beta turns an Android 11+ phone into a camera for your Windows PC. Start with [Connect your phone](connect.md) if you have not paired it yet.
+Streamsthetic 0.2.6 beta turns an Android 11+ phone into a camera for your Windows PC. Start with [Connect your phone](connect.md) if you have not paired it yet.
 
 ## Find your way around
 
@@ -12,6 +10,8 @@ Streamsthetic 0.2.5 beta turns an Android 11+ phone into a camera for your Windo
 | **Camera** | Choose Lens, Resolution, Frame rate and Bitrate. |
 | **Rotate** | Enable Auto-rotate or turn the picture manually with Left and Right. Start streaming to use these controls. |
 | **Settings** | Open Appearance, Streaming & power, Permissions or Help & requirements. |
+
+![Camera tab](images/phone/camera.png){ width="270" loading=lazy } ![Rotate tab](images/phone/rotate.png){ width="270" loading=lazy } ![Settings overview](images/phone/settings.png){ width="270" loading=lazy }
 
 Tap the **i** beside a setting for an explanation. Inside a Settings category, use **Back to Settings** or Android's Back action to return to the overview. Your open category and scroll position are preserved when appearance or size changes recreate the screen.
 
@@ -31,11 +31,13 @@ Open **Settings → Appearance**. These settings change the phone interface, not
 | Setting | Choices or behavior |
 | --- | --- |
 | **Theme** | Studio, Creator, Gamer, Brutal, Dot, Prism or Contrast. |
-| **Appearance** | System, Light or Dark on Android 12+. Android 11 follows the phone's setting; Gamer always uses dark appearance. |
+| **Light or dark** | System, Light or Dark on Android 12+. Android 11 follows the phone's setting; Gamer always uses dark appearance. |
 | **Text size** | Normal, Large, Larger or Largest, in addition to the phone's own text scaling. |
 | **Icon size** | Normal, Large or Larger. Also increases control size and spacing. |
 
 Changing these settings redraws the interface; the streaming service continues running.
+
+![Settings, Appearance](images/phone/appearance.png){ width="270" loading=lazy }
 
 ## Streaming & power
 
@@ -49,9 +51,11 @@ Open **Settings → Streaming & power**.
 | **Cool down automatically** | Reduces bitrate, resolution or frame rate when Android reports elevated temperature. Restores the chosen settings after two minutes at a lower thermal level. Android may still limit performance independently. |
 | **Auto-off** | Stops an idle stream after 10 minutes, 30 minutes or one hour. Default: 30 minutes. Choose Off to disable it. |
 
+![Settings, Streaming & power](images/phone/streaming-power.png){ width="270" loading=lazy }
+
 The idle timer applies when no PC is connected or the PC reports that no app is using the Streamsthetic camera. If the phone becomes very hot, stop streaming and let it cool.
 
-Microphone audio needs an output selected on the PC. It does not create a Windows microphone device—see [Audio](audio.md) for listening and routing it into another app.
+In OBS the phone's sound needs no extra software: add the **Streamsthetic phone microphone** source. For other apps it does not create a Windows microphone device; see [Audio](audio.md).
 
 ## Permissions
 
@@ -66,7 +70,13 @@ Open **Settings → Permissions** and tap **Allow** beside the permission you ne
 
 ## Help & requirements
 
-Open **Settings → Help & requirements** to review device and connection requirements or choose **Report a problem**. Add a description, then choose **Continue on GitHub**. Sign in if needed, review the public issue draft and submit it yourself. Streamsthetic does not submit an issue automatically.
+Open **Settings → Help & requirements** to review device and connection requirements, check for updates or choose **Report a problem**.
+
+![Help & requirements](images/phone/help-top.png){ width="270" loading=lazy } ![Report a problem and Updates](images/phone/help-bottom.png){ width="270" loading=lazy }
+
+**Updates → Check for updates** asks GitHub whether a newer version exists and, when there is one, offers **Open download page**. Nothing downloads by itself.
+
+**Report a problem**: Add a description, then choose **Continue on GitHub**. Sign in if needed, review the public issue draft and submit it yourself. Streamsthetic does not submit an issue automatically.
 
 The draft includes your description, app version, Android version, phone model and connection type. Logs and saved settings are not added. If the browser link shortens a long description, the full summary is saved privately on the phone; reopen **Report a problem** and choose **Share saved GitHub summary** to retrieve it. A later shortened report replaces that saved summary.
 
@@ -74,4 +84,4 @@ The draft includes your description, app version, Android version, phone model a
 
 ## Related guides
 
-[Overview](../../README.md) · [Connect](connect.md) · [Windows app](windows.md) · [Camera controls](camera-controls.md) · [Audio](audio.md) · [Troubleshooting](troubleshooting.md)
+[Overview](README.md) · [Connect](connect.md) · [Windows app](windows.md) · [Camera controls](camera-controls.md) · [Audio](audio.md) · [Troubleshooting](troubleshooting.md)

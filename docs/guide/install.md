@@ -1,5 +1,3 @@
-[Guide](README.md) / Getting started
-
 # Install Streamsthetic
 
 Install the Windows app on your PC and the Android app on your phone. You need both to use the phone as a Windows camera.
@@ -19,7 +17,7 @@ iPhone and macOS versions are not included in this release.
 
 ## Choose your downloads
 
-Open the [v0.2.5-beta.1 release](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.5-beta.1) and download these two files:
+Open the [v0.2.6-beta.1 release](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.6-beta.1) and download these two files:
 
 | File | Install it on |
 | --- | --- |
@@ -28,16 +26,22 @@ Open the [v0.2.5-beta.1 release](https://github.com/cyclessomething/streamstheti
 
 The offline Windows installer does not require Visual Studio, an Android SDK or a separately installed .NET runtime. The smaller **Streamsthetic-Setup.exe** needs .NET 10 Desktop Runtime and may download it during setup. The ZIP files are alternative packages; most people should use the offline EXE.
 
-> **Testing release:** the Windows installer is unsigned, so Windows may show an unknown-publisher or SmartScreen notice. The APK uses a development signing key and is debuggable. The offline installer and four virtual cameras passed on a clean Windows 11 x64 VM. See [testing coverage](../TESTING.md) for the checks and remaining limits.
+!!! note "Testing release"
+    The Windows installer is unsigned, so Windows may show **Windows protected your PC**: choose **More info**, then **Run anyway**, for a download you trust. The Android app is signed with the Streamsthetic release key. See [testing coverage](https://github.com/cyclessomething/streamsthetic/blob/main/docs/TESTING.md) for the checks and remaining limits.
+
+!!! warning "Coming from 0.2.5 or earlier on Android?"
+    Earlier test versions used a temporary signing key, so Android will not install 0.2.6 over them. Uninstall Streamsthetic from the phone once, install the new APK, then pair again. Later updates install over it normally.
 
 ## Install on Windows
 
 1. Open **Streamsthetic-Setup-offline.exe**.
 2. Approve the administrator prompt for the camera component.
 3. Let setup finish. If it reports a problem, follow the message before trying to stream.
-4. Open **Streamsthetic** from the desktop or Start menu if it does not open automatically.
+4. Open **Streamsthetic** from the desktop or Start menu if it does not open automatically. The first time, a short setup guide opens:
 
-The app installs for your Windows account and adds four camera outputs. You do not need to connect four phones to use it.
+![The Get started window on the PC](images/pc/setup-guide.png){ loading=lazy }
+
+The app installs for your Windows account and adds four camera outputs. You do not need to connect four phones to use it. If OBS Studio 30 or newer is installed, setup also adds the **Streamsthetic phone microphone** audio source to OBS (see [Microphone audio](audio.md)).
 
 If camera setup was canceled, run the installer again and approve that prompt. Reopen any video app that was already running so it can refresh its camera list.
 
@@ -49,6 +53,8 @@ If camera setup was canceled, run the installer again and approve that prompt. R
 4. Allow notifications if you want streaming status and a stop control in the notification area.
 
 Microphone access is needed only when you enable microphone audio. Unrestricted battery use is optional. You can review these choices in **Settings → Permissions**.
+
+![Permissions page on the phone](images/phone/permissions.png){ width="270" loading=lazy }
 
 ## Make your first connection
 

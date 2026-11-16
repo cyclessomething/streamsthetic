@@ -1,0 +1,35 @@
+/* Streamsthetic's Studio look: orange #FE5921 accent (docs/DESIGN_PATTERNS.md), warm paper in light mode. */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #FE5921;
+  --md-primary-fg-color--light: #FF7A4A;
+  --md-primary-fg-color--dark: #D9441A;
+  --md-primary-bg-color: #1B1B1B;
+  --md-accent-fg-color: #D9441A;
+  --md-default-bg-color: #F2F0EB;
+  --md-typeset-a-color: #C23D12;   /* darker than the accent: readable link text on paper */
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #FE5921;
+  --md-primary-bg-color: #111111;
+  --md-accent-fg-color: #FF7A4A;
+  --md-typeset-a-color: #FF8A5C;
+}
+
+/* screenshots: a hairline frame so light screens stand out from the page */
+.md-typeset img {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+}
+[data-md-color-scheme="slate"] .md-typeset img { border-color: rgba(255, 255, 255, 0.14); }
+
+/* phone screenshots sit side by side and wrap on narrow screens */
+.md-typeset p > a.glightbox + a.glightbox,
+.md-typeset p > img + img { margin-left: 0.6rem; }
+.md-typeset p:has(> a.glightbox img[width="270"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.md-typeset p:has(> a.glightbox img[width="270"]) > a.glightbox + a.glightbox { margin-left: 0; }

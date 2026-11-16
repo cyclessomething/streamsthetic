@@ -35,6 +35,9 @@ $neighbor = $target + '-neighbor'
 $menu = Join-Path $testRoot 'menu'
 $desktop = Join-Path $testRoot 'desktop'
 $key = 'HKCU:\Software\StreamstheticInstallerTests\' + [Guid]::NewGuid().ToString('N')
+# Every install in this test writes OBS plugins here, never to the real C:\ProgramData\obs-studio\plugins
+# (one call without it once replaced the owner's real OBS plugin with the test's dummy file).
+$obsRoot = Join-Path $testRoot 'obs-plugins'
 New-Item -ItemType Directory -Path $package, $neighbor, $desktop -Force | Out-Null
 Copy-Item -Path (Join-Path $PSScriptRoot 'installer\*') -Destination $package
 Set-Content -LiteralPath (Join-Path $package 'Streamsthetic.exe') -Value 'first version'
@@ -44,7 +47,7 @@ Set-Content -LiteralPath (Join-Path $package 'PresentationFramework.dll') -Value
 Set-Content -LiteralPath (Join-Path $neighbor 'keep.txt') -Value 'neighbor'
 $passed = $false
 try {
-    & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoCamera -NoLaunch
+    & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoCamera -NoLaunch -ObsPluginRoot $obsRoot
     if (-not (Test-Path -LiteralPath (Join-Path $target 'installation.json'))) { throw 'Missing install receipt' }
     if (-not (Test-Path -LiteralPath (Join-Path $target 'install-preflight.ps1'))) { throw 'Installed package is missing the shared native capture helper' }
     if ((Get-ItemProperty -LiteralPath $key).InstallLocation -ne $target) { throw 'Incorrect install registration' }
@@ -53,8 +56,7 @@ try {
     # a file the new version no longer ships (like a leftover bundled runtime) must not survive the upgrade
     Set-Content -LiteralPath (Join-Path $target 'hostfxr.dll') -Value 'left over'
     New-Item -ItemType Directory -Force (Join-Path $package 'obs-plugin') | Out-Null
-    Set-Content -LiteralPath (Join-Path $package 'obs-plugin\streamsthetic-mic.dll') -Value 'plugin'
-    $obsRoot = Join-Path $testRoot 'obs-plugins'
+    [IO.File]::WriteAllBytes((Join-Path $package 'obs-plugin\streamsthetic-mic.dll'), [byte[]](0x4D, 0x5A, 0x90, 0x00)) # starts like a real DLL
     & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoCamera -NoLaunch -ObsPluginRoot $obsRoot
     if ((Get-Content -LiteralPath (Join-Path $target 'Streamsthetic.exe') -Raw).Trim() -ne 'second version') { throw 'Upgrade did not replace application' }
     if (Test-Path -LiteralPath (Join-Path $target 'hostfxr.dll')) { throw 'Upgrade kept a file the new version does not ship' }
@@ -64,12 +66,17 @@ try {
     $obsCopy = Join-Path $obsRoot 'streamsthetic-mic\bin\64bit\streamsthetic-mic.dll'
     if ($obsHere) {
         if (-not (Test-Path -LiteralPath $obsCopy)) { throw 'OBS is installed but the microphone source was not added' }
-        Write-Output 'PASS: OBS microphone source added to the OBS plugin folder'
+        # a damaged plugin file is refused and the good copy already in OBS stays
+        Set-Content -LiteralPath (Join-Path $package 'obs-plugin\streamsthetic-mic.dll') -Value 'not a dll'
+        & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoCamera -NoLaunch -ObsPluginRoot $obsRoot 3>$null
+        $kept = [IO.File]::ReadAllBytes($obsCopy)
+        if ($kept.Count -lt 2 -or $kept[0] -ne 0x4D -or $kept[1] -ne 0x5A) { throw 'A damaged plugin file replaced the working OBS plugin' }
+        Write-Output 'PASS: OBS microphone source added; a damaged plugin file is refused'
     } elseif (Test-Path -LiteralPath $obsCopy) { throw 'Added an OBS plugin without OBS' }
     else { Write-Output 'SKIP: OBS not installed here, plugin copy not exercised' }
     # Replace only the test package's camera script: exercise child exit propagation without UAC or a camera.
     Set-Content -LiteralPath (Join-Path $package 'install-camera.ps1') -Value 'exit 7'
-    Expect-Failure { & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoLaunch } 'camera setup did not finish'
+    Expect-Failure { & (Join-Path $package 'install.ps1') -Target $target -StartMenu $menu -Desktop $desktop -UninstallKey $key -NoLaunch -ObsPluginRoot $obsRoot } 'camera setup did not finish'
     Write-Output 'PASS: isolated installer rejects failed camera child before success/launch'
     # Exercise saved receipt paths instead of passing the alternate registry/shortcut locations again.
     & (Join-Path $target 'uninstall.ps1') -KeepSettings

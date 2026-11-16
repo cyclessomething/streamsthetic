@@ -1,5 +1,3 @@
-[Guide](README.md) / Help and maintenance
-
 # Privacy and diagnostic reports
 
 Streamsthetic sends video, and optional microphone audio, directly between your phone and PC over USB or the local network. You do not need an online account to stream.
@@ -10,7 +8,7 @@ Camera access is required for video. Microphone access is optional: enable **Sen
 
 Keep your pairing code private and use a network you trust. Pairing is part of finding and connecting your devices; this guide does not promise encrypted transport.
 
-Streaming does not require internet access. Downloading the app, obtaining the optional Google Play services QR scanner, checking a configured update feed and opening help links or GitHub drafts may use the internet.
+Streaming does not require internet access. Downloading the app, obtaining the optional Google Play services QR scanner, **Check for updates** (one request to GitHub's public release list, only when you press it) and opening help links or GitHub drafts use the internet.
 
 ## Open a public GitHub draft
 

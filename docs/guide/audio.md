@@ -1,8 +1,20 @@
-[Guide](README.md) / Picture and sound
-
 # Use the phone microphone
 
-Microphone audio is optional. Streamsthetic sends audio from **camera 1's phone** to a Windows playback output. It does not install a virtual microphone, and cameras 2–4 do not provide separate audio feeds.
+Microphone audio is optional. There are two ways to use it:
+
+- **In OBS (30 or newer): no cable.** Add the **Streamsthetic phone microphone** source and pick the camera. Every camera (1–4) has its own sound.
+- **Anywhere else** (Discord, Teams, listening on the PC): Streamsthetic plays **camera 1's** sound on a Windows playback output. It does not install a Windows microphone, so calling apps need a virtual audio cable.
+
+First, on the phone: **Settings > Streaming & power > Send the microphone to the PC**, then allow microphone access.
+
+## Use the phone microphone in OBS
+
+1. Make sure the source is installed: setup adds it when OBS is installed. If you installed OBS later, open Streamsthetic on the PC, **Settings > Audio > OBS audio source**, and choose **Add to OBS**. Restart OBS if it was open.
+2. In OBS, under **Sources**, choose **+ → Streamsthetic phone microphone**.
+3. Under **Phone**, pick the camera whose phone you want (Camera 1 is Streamsthetic, Camera 2 is Streamsthetic 2, and so on).
+4. Start streaming on that phone. The source's meter in the OBS **Audio Mixer** moves when you speak.
+
+![Settings, Audio, with the OBS audio source row](images/pc/settings-audio.png){ loading=lazy }
 
 ## Listen on the PC
 
@@ -13,7 +25,7 @@ Microphone audio is optional. Streamsthetic sends audio from **camera 1's phone*
 
 Use headphones if the phone is near the PC to avoid feedback. Audio adds about 1 Mbps to the connection.
 
-## Send audio to OBS or a calling app
+## Send audio to a calling app
 
 The Windows camera device carries video. Selecting it in another app does not automatically select the phone as a microphone.
 
@@ -21,15 +33,15 @@ To make the phone audio available as a microphone input, install a separate virt
 
 1. In Streamsthetic's **Settings > Audio > Phone microphone**, select **CABLE Input** (the cable's playback device).
 2. Restart the PC camera connection.
-3. In OBS or your calling app, select **CABLE Output** (the cable's recording device) as the audio input.
+3. In your calling app, select **CABLE Output** (the cable's recording device) as the audio input.
 4. Check that the receiving app's audio meter responds when you speak.
 
-The input/output naming is from the virtual cable: Streamsthetic plays into its input, and the receiving app records its output. Device names can vary. The cable is a separate installation; Streamsthetic does not bundle it or an OBS audio plugin.
+The input/output naming is from the virtual cable: Streamsthetic plays into its input, and the receiving app records its output. Device names can vary. The cable is a separate installation; Streamsthetic does not bundle it. OBS does not need it: use the OBS source above.
 
 ## Turn audio off
 
 Set **Phone microphone** to **Off** on the PC and restart the connection. To stop sending microphone audio from the phone too, disable **Send the microphone to the PC** in its settings and restart its stream.
 
-If audio is silent, check microphone permission on the phone, that the phone is assigned to camera 1, the selected PC output and the receiving app's input. Restart after changing audio settings.
+If audio is silent, check microphone permission on the phone and that **Send the microphone to the PC** is on. In OBS, check that the source's **Phone** matches the camera the phone uses. For other apps, check that the phone is camera 1, the selected PC output and the receiving app's input. Restart the stream after changing audio settings.
 
-Related: [Android app](android.md) · [Windows app](windows.md) · [Multiple phones](multiple-phones.md) · [Connect your phone](connect.md) · [Troubleshooting](troubleshooting.md) · [Guide and downloads](../../README.md)
+Related: [Android app](android.md) · [Windows app](windows.md) · [Multiple phones](multiple-phones.md) · [Connect your phone](connect.md) · [Troubleshooting](troubleshooting.md)

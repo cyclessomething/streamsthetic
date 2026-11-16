@@ -30,3 +30,4 @@ __pycache__/
 !.env.example
 windows/obs-plugin/x64/
 keystore.properties
+site/
