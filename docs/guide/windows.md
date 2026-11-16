@@ -7,7 +7,7 @@ Connect a phone, check its picture, then select the Streamsthetic camera in your
 | Tab | Use it to |
 | --- | --- |
 | **Camera** | Choose the connection, lens, zoom, resolution, frame rate, bitrate and orientation. |
-| **Phones** | Add phones, select the camera you want to control, or disconnect a phone. |
+| **Phones** | Add phones, select the camera you want to control, disconnect a phone, or change the [number of cameras](multiple-phones.md#use-more-than-four-phones). |
 | **Picture** | Adjust exposure, focus, white balance, flicker reduction, stabilization and mirroring. |
 | **Settings** | Change the app's appearance, streaming behaviour, audio output and help options. |
 

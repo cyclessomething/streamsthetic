@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $testDir = Join-Path ([IO.Path]::GetTempPath()) ('streamsthetic-sessions-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testDir | Out-Null
-$files = 'PhoneDiscovery.cs', 'PhoneSessions.cs', 'ReceiverController.cs'
+$files = 'CameraLimits.cs', 'PhoneDiscovery.cs', 'PhoneSessions.cs', 'ReceiverController.cs'
 $includes = ($files | ForEach-Object { '<Compile Include="' + [Security.SecurityElement]::Escape((Join-Path $root "windows/app/$_")) + '" />' }) -join "`n"
 @"
 <Project Sdk="Microsoft.NET.Sdk">
@@ -120,6 +120,27 @@ using var stopped = new CancellationTokenSource();
 stopped.Cancel();
 try { await PhoneDiscovery.ScanAsync(new[] { IPAddress.Loopback }, TimeSpan.FromSeconds(1), stopped.Token); throw new Exception("cancellation ignored"); }
 catch (OperationCanceledException) { Console.WriteLine("PASS: scan cancellation honored"); }
+// Number of cameras: the list follows Count (4 by default, up to 16); lowering it forgets phones on removed cameras
+using (var counted = new PhoneSessions())
+{
+    Check(counted.Count == PhoneSessions.DefaultCameras && counted.All.Count == 4, "four cameras by default");
+    PhoneEndpoint Phone(int n) => new($"{n:D8}-0000-0000-0000-000000000000", $"Phone {n}", $"192.168.7.{n}", 5556);
+    for (var n = 1; n <= 4; n++) Check(counted.Assign(Phone(n))?.Slot == n, $"phone {n} gets camera {n}");
+    Check(counted.Assign(Phone(5)) == null, "a fifth phone is refused while there are four cameras");
+    counted.Count = 6;
+    Check(counted.All.Count == 6 && counted.Assign(Phone(5))?.Slot == 5, "raising to six cameras gives the fifth phone camera 5");
+    counted.Count = 3;
+    Check(counted.All.Count == 3 && counted.Assignments.Count == 3 && counted.Find(4).Endpoint == null && counted.Find(5).Endpoint == null,
+        "lowering to three cameras forgets the phones on cameras 4 and 5");
+    counted.Count = 99;
+    Check(counted.Count == PhoneSessions.MaxCameras && counted.All.Count == 16, "the count stops at sixteen");
+    counted.Count = 0;
+    Check(counted.Count == 1, "at least one camera");
+    var fewer = new PhoneSessions { Count = 2 };
+    fewer.Restore(new[] { new PhoneSlotAssignment(2, Phone(2)), new PhoneSlotAssignment(9, Phone(9)) });
+    Check(fewer.Assignments.Count == 1 && fewer.Find(2).Endpoint?.Name == "Phone 2", "saved phones on cameras that no longer exist are ignored");
+    fewer.Dispose();
+}
 Console.WriteLine("SESSION SELF-TEST PASS");
 
 namespace PhoneCam

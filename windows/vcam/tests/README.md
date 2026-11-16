@@ -7,7 +7,7 @@ cl /nologo /EHsc /std:c++17 windows\vcam\tests\SlotTests.cpp /Fowindows\vcam\x64
 windows\vcam\x64\Release\SlotTests.exe windows\vcam\x64\Release\VCamSampleSource.dll
 ```
 
-The check loads the built DLL directly. It checks all four COM identities, distinct concurrent media sources, the legacy slot-1 shared name, isolated extra slot names, and all advertised video formats. It does not install or register cameras, change shared frame buffers, or require a phone or administrator rights.
+The check loads the built DLL directly. It checks all 16 COM identities (the hex IDs of cameras 8-16 included), distinct concurrent media sources, the legacy slot-1 shared name, isolated extra slot names, and all advertised video formats. It does not install or register cameras, change shared frame buffers, or require a phone or administrator rights.
 
 Registration, frames delivered through Windows Frame Server, and simultaneous OBS sources require separate integration testing after installing the updated DLL.
 

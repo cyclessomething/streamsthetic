@@ -1,6 +1,6 @@
 // OBS source "Streamsthetic phone microphone": the sound from a phone's microphone, straight into OBS, with no
 // virtual audio cable and no driver. StreamstheticReceiver.exe puts each phone's audio in shared memory
-// (shared_audio.h); this source reads the block of the chosen camera (1-4) and hands the samples to OBS.
+// (shared_audio.h); this source reads the block of the chosen camera (1-16) and hands the samples to OBS.
 // Built against libobs 30.0.0 headers (loads in OBS 30 and newer); links only to the few obs.dll functions listed in obs.def.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -16,7 +16,7 @@ OBS_DECLARE_MODULE()
 
 struct phone_mic {
     obs_source_t *source;
-    volatile LONG slot;    /* camera 1-4; set from OBS's thread, read by ours */
+    volatile LONG slot;    /* camera 1-16; set from OBS's thread, read by ours */
     volatile LONG running;
     HANDLE thread;
 };
@@ -98,7 +98,7 @@ static void phone_mic_update(void *data, obs_data_t *settings)
 {
     struct phone_mic *mic = data;
     long long slot = obs_data_get_int(settings, "camera");
-    InterlockedExchange(&mic->slot, (LONG)(slot >= 1 && slot <= 4 ? slot : 1));
+    InterlockedExchange(&mic->slot, (LONG)(slot >= 1 && slot <= STREAMSTHETIC_MAX_CAMERAS ? slot : 1));
 }
 
 static void *phone_mic_create(obs_data_t *settings, obs_source_t *source)
@@ -128,15 +128,35 @@ static void phone_mic_defaults(obs_data_t *settings)
     obs_data_set_default_int(settings, "camera", 1);
 }
 
+/* How many Streamsthetic cameras Windows has (the PC app's Number of cameras; markers SystemCamera, SystemCamera2,
+   ... in HKLM\SOFTWARE\PhoneCam). Falls back to 4 when it cannot tell. */
+static int installed_cameras(void)
+{
+    int count = 0;
+    for (int camera = 1; camera <= STREAMSTHETIC_MAX_CAMERAS; camera++) {
+        wchar_t name[32];
+        if (camera == 1) wcscpy_s(name, 32, L"SystemCamera");
+        else swprintf(name, 32, L"SystemCamera%d", camera);
+        DWORD value = 0, size = sizeof(value);
+        if (RegGetValueW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\PhoneCam", name, RRF_RT_REG_DWORD, NULL, &value, &size) != ERROR_SUCCESS || !value)
+            break;
+        count = camera;
+    }
+    return count > 0 ? count : 4;
+}
+
 static obs_properties_t *phone_mic_properties(void *unused)
 {
     UNUSED_PARAMETER(unused);
     obs_properties_t *props = obs_properties_create();
     obs_property_t *list = obs_properties_add_list(props, "camera", "Phone", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
-    obs_property_list_add_int(list, "Camera 1 (Streamsthetic)", 1);
-    obs_property_list_add_int(list, "Camera 2 (Streamsthetic 2)", 2);
-    obs_property_list_add_int(list, "Camera 3 (Streamsthetic 3)", 3);
-    obs_property_list_add_int(list, "Camera 4 (Streamsthetic 4)", 4);
+    int cameras = installed_cameras();
+    for (int camera = 1; camera <= cameras; camera++) {
+        char label[64];
+        if (camera == 1) snprintf(label, sizeof(label), "Camera 1 (Streamsthetic)");
+        else snprintf(label, sizeof(label), "Camera %d (Streamsthetic %d)", camera, camera);
+        obs_property_list_add_int(list, label, camera);
+    }
     obs_properties_add_text(props, "help",
         "In the phone app, turn on Settings > Streaming & power > Send the microphone to the PC. "
         "Sound arrives while that phone streams.", OBS_TEXT_INFO);

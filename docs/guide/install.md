@@ -41,7 +41,7 @@ The offline Windows installer does not require Visual Studio, an Android SDK or 
 
 ![The Get started window on the PC](images/pc/setup-guide.png){ loading=lazy }
 
-The app installs for your Windows account and adds four camera outputs. You do not need to connect four phones to use it. If OBS Studio 30 or newer is installed, setup also adds the **Streamsthetic phone microphone** audio source to OBS (see [Microphone audio](audio.md)).
+The app installs for your Windows account and adds four cameras to start with (you can change that later, up to 16). You do not need to connect four phones to use it. If OBS Studio 30 or newer is installed, setup also adds the **Streamsthetic phone microphone** audio source to OBS (see [Microphone audio](audio.md)).
 
 If camera setup was canceled, run the installer again and approve that prompt. Reopen any video app that was already running so it can refresh its camera list.
 

@@ -15,6 +15,7 @@ This guide covers **0.2.6 (v0.2.6-beta.1)** on Windows 11 x64 and Android 11 or 
 | [Install Streamsthetic](install.md) | Choose the right downloads and install both apps. |
 | [Connect your phone](connect.md) | Connect over USB or Wi-Fi and pair your devices. |
 | [Use OBS and other video apps](obs-and-video-apps.md) | Select the Streamsthetic camera and start using it. |
+| [What works with Streamsthetic](compatibility.md) | Which apps get the camera and the phone's sound, and which systems are supported. |
 
 ## Using the apps
 
@@ -22,7 +23,7 @@ This guide covers **0.2.6 (v0.2.6-beta.1)** on Windows 11 x64 and Android 11 or 
 | --- | --- |
 | [Windows app](windows.md) | Use the preview, tabs, settings and background controls. |
 | [Android app](android.md) | Use the phone controls, permissions and power settings. |
-| [Multiple phones](multiple-phones.md) | Assign up to four phones to separate Windows cameras. |
+| [Multiple phones](multiple-phones.md) | Use several phones as separate cameras; choose how many (up to 16). |
 
 ## Picture and sound
 
@@ -45,7 +46,7 @@ This guide covers **0.2.6 (v0.2.6-beta.1)** on Windows 11 x64 and Android 11 or 
 | --- | --- |
 | **Preview** | The live picture inside Streamsthetic. |
 | **Windows camera** | The camera output that OBS and other video apps can select. |
-| **Camera slot** | One of four independent Windows camera outputs. Each connected phone uses its own slot. |
+| **Camera slot** | One of the Windows camera outputs (4 to start, up to 16). Each connected phone uses its own slot. |
 | **Pairing code** | The code shared by the PC and phones for network discovery. Keep it private. |
 | **Frame rate (fps)** | How many images are sent each second. Higher values can make motion smoother. |
 | **Bitrate (Mbps)** | The amount of video data sent each second. Higher values use more bandwidth. |

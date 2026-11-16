@@ -8,7 +8,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $testDir = Join-Path ([IO.Path]::GetTempPath()) ('streamsthetic-session-integration-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testDir | Out-Null
-$includes = ('PhoneDiscovery.cs', 'PhoneSessions.cs', 'ReceiverController.cs' | ForEach-Object {
+$includes = ('CameraLimits.cs', 'PhoneDiscovery.cs', 'PhoneSessions.cs', 'ReceiverController.cs' | ForEach-Object {
     '<Compile Include="' + [Security.SecurityElement]::Escape((Join-Path $root "windows/app/$_")) + '" />'
 }) -join "`n"
 $receiverPath = [Security.SecurityElement]::Escape((Resolve-Path -LiteralPath $Receiver).Path)

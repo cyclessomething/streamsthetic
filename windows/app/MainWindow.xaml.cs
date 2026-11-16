@@ -121,6 +121,7 @@ public partial class MainWindow : Window
         SkinBox.ItemsSource = Skins;
         SkinBox.SelectedItem = Skins.First(a => a.Values == _skin);
         InitPhoneSessions();
+        Activated += (_, _) => SyncCameraCount(); // the camera count can change outside the app
         _usb.PhonePresentChanged += present => Dispatcher.Invoke(() => OnUsbChanged(present));
         _usb.ProblemChanged += problem => Dispatcher.Invoke(() => { _usbProblem = problem; Show(_receiver.Status); });
         // --snapshot only renders the window: it must not start Streamsthetic (auto-start) or touch the phone
@@ -955,33 +956,18 @@ public partial class MainWindow : Window
         return false;
     }
 
-    private const string CameraClsid = "{31621596-4208-4D72-9066-1F9507074423}";
-
-    /// <summary>True when the Streamsthetic virtual camera is registered with Windows (the one-time install step ran).</summary>
+    /// <summary>True when Windows has Streamsthetic camera <paramref name="slot"/> (see CameraSetup).</summary>
     private static bool CameraInstalled(int slot = 1)
     {
         if (Environment.GetCommandLineArgs().Contains("--pretend-no-camera")) return false; // for testing the offer below
-        try
-        {
-            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey($@"SOFTWARE\Classes\CLSID\{(slot == 1 ? CameraClsid : $"{{31621596-4208-4D72-9066-1F950707442{slot + 2}}}")}");
-            return key != null && File.Exists(@"C:\ProgramData\PhoneCam\vcam\VCamSampleSource.dll");
-        }
-        catch (Exception ex) when (ex is System.Security.SecurityException or UnauthorizedAccessException) { return true; } // cannot tell: let the receiver try
+        return CameraSetup.Installed(slot);
     }
 
-    /// <summary>Runs the one-time camera install (Windows asks for permission). Returns true when the camera is registered afterwards.</summary>
+    /// <summary>Runs the camera install, keeping the chosen number of cameras (Windows asks for permission).</summary>
     private async Task<bool> InstallCameraAsync()
     {
-        var script = Path.Combine(AppContext.BaseDirectory, "install-camera.ps1");
-        if (!File.Exists(script)) return false;
         Show(new(LinkState.Starting, "Installing the Streamsthetic camera… approve the Windows permission prompt."));
-        await Task.Run(() =>
-        {
-            using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("powershell",
-                $"-NoProfile -ExecutionPolicy Bypass -File \"{script}\"") { UseShellExecute = false, CreateNoWindow = true });
-            p?.WaitForExit(120000);
-        });
-        var ok = CameraInstalled();
+        var ok = await CameraSetup.ApplyAsync(null) && CameraInstalled();
         Diagnostics.Log("app", $"camera install finished, installed: {ok}");
         return ok;
     }
@@ -1308,6 +1294,9 @@ public partial class MainWindow : Window
             _micOutput = settings.MicOutput ?? "";
             _autoConnect = settings.AutoConnect;
             _paired = settings.Paired ?? "";
+            // as many cameras as Windows has (first run, before the camera install: the default)
+            var installedCameras = CameraSetup.InstalledCount();
+            _sessions.Count = installedCameras > 0 ? installedCameras : CameraSetup.DefaultCameras;
             _sessions.Restore(settings.PhoneSlots);
             RefreshPaired();
             AutoConnectBox.IsChecked = _autoConnect;

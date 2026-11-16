@@ -26,18 +26,40 @@ public sealed class PhoneSession
     }
 }
 
-/// <summary>Four independently controlled receivers. Assignments are remembered even while a phone is offline.</summary>
+/// <summary>
+/// One independently controlled receiver per Windows camera. Up to MaxCameras exist; only the first
+/// <see cref="Count"/> (the cameras Windows has) are shown and used. Assignments are remembered while a phone is offline.
+/// </summary>
 public sealed class PhoneSessions : IDisposable
 {
-    private readonly PhoneSession[] _sessions = Enumerable.Range(1, 4).Select(slot => new PhoneSession(slot)).ToArray();
-    public IReadOnlyList<PhoneSession> All => _sessions;
-    public IReadOnlyList<PhoneSlotAssignment> Assignments => _sessions.Where(s => s.Endpoint != null).Select(s => new PhoneSlotAssignment(s.Slot, s.Endpoint!, s.LastSeen)).ToArray();
+    public const int MaxCameras = CameraLimits.Max;
+    public const int DefaultCameras = CameraLimits.Default;
+    private readonly PhoneSession[] _all = Enumerable.Range(1, MaxCameras).Select(slot => new PhoneSession(slot)).ToArray();
+    private int _count = DefaultCameras;
+
+    /// <summary>How many cameras are in use (1..MaxCameras). Lowering it stops and forgets phones on the removed cameras.</summary>
+    public int Count
+    {
+        get => _count;
+        set
+        {
+            var count = Math.Clamp(value, 1, MaxCameras);
+            for (var slot = count + 1; slot <= _count; slot++) Forget(slot);
+            _count = count;
+        }
+    }
+
+    private IEnumerable<PhoneSession> Active => _all.Take(_count);
+    public IReadOnlyList<PhoneSession> All => Active.ToArray();
+    /// <summary>Every possible camera, also the ones not installed (for wiring up events once).</summary>
+    public IReadOnlyList<PhoneSession> Every => _all;
+    public IReadOnlyList<PhoneSlotAssignment> Assignments => Active.Where(s => s.Endpoint != null).Select(s => new PhoneSlotAssignment(s.Slot, s.Endpoint!, s.LastSeen)).ToArray();
     public event Action<PhoneSession, ReceiverStatus>? StatusChanged;
     public event Action<PhoneSession, IReadOnlyDictionary<string, string>>? SettingsChanged;
 
     public PhoneSessions()
     {
-        foreach (var session in _sessions)
+        foreach (var session in _all)
         {
             session.Receiver.StatusChanged += status =>
             {
@@ -53,18 +75,18 @@ public sealed class PhoneSessions : IDisposable
         }
     }
 
-    public PhoneSession Find(int slot) => slot is >= 1 and <= 4 ? _sessions[slot - 1] : throw new ArgumentOutOfRangeException(nameof(slot));
+    public PhoneSession Find(int slot) => slot >= 1 && slot <= MaxCameras ? _all[slot - 1] : throw new ArgumentOutOfRangeException(nameof(slot));
 
     public PhoneSession? Assign(PhoneEndpoint phone)
     {
         if (!Valid(phone)) return null;
-        var existing = _sessions.FirstOrDefault(s => s.Endpoint?.Id == phone.Id);
+        var existing = Active.FirstOrDefault(s => s.Endpoint?.Id == phone.Id);
         // Upgrade an older endpoint-only record when a modern phone advertises its stable installation ID.
-        existing ??= _sessions.FirstOrDefault(s => s.Endpoint is { } old && old.Id.StartsWith("legacy:") && old.Host == phone.Host && old.Port == phone.Port);
-        existing ??= _sessions.FirstOrDefault(s => s.Endpoint == null && s.Running && s.Receiver.PhoneHost == phone.Host && s.Receiver.PhonePort == phone.Port);
+        existing ??= Active.FirstOrDefault(s => s.Endpoint is { } old && old.Id.StartsWith("legacy:") && old.Host == phone.Host && old.Port == phone.Port);
+        existing ??= Active.FirstOrDefault(s => s.Endpoint == null && s.Running && s.Receiver.PhoneHost == phone.Host && s.Receiver.PhonePort == phone.Port);
         // A new identity at an occupied address must not create a second receiver for the same phone.
-        if (_sessions.Any(s => s != existing && s.Endpoint is { } other && other.Host == phone.Host && other.Port == phone.Port)) return null;
-        var session = existing ?? _sessions.FirstOrDefault(s => s.Endpoint == null && !s.Running);
+        if (Active.Any(s => s != existing && s.Endpoint is { } other && other.Host == phone.Host && other.Port == phone.Port)) return null;
+        var session = existing ?? Active.FirstOrDefault(s => s.Endpoint == null && !s.Running);
         if (session == null) return null;
         session.Endpoint = phone;
         return session;
@@ -85,9 +107,9 @@ public sealed class PhoneSessions : IDisposable
         var updates = new Dictionary<PhoneSession, PhoneEndpoint>();
         foreach (var phone in candidates)
         {
-            var session = _sessions.FirstOrDefault(s => s.Endpoint?.Id == phone.Id);
-            session ??= _sessions.FirstOrDefault(s => s.Endpoint is { } old && old.Id.StartsWith("legacy:") && SameAddress(old, phone));
-            session ??= _sessions.FirstOrDefault(s => s.Endpoint == null && s.Running
+            var session = Active.FirstOrDefault(s => s.Endpoint?.Id == phone.Id);
+            session ??= Active.FirstOrDefault(s => s.Endpoint is { } old && old.Id.StartsWith("legacy:") && SameAddress(old, phone));
+            session ??= Active.FirstOrDefault(s => s.Endpoint == null && s.Running
                 && s.Receiver.PhoneHost == phone.Host && s.Receiver.PhonePort == phone.Port);
             if (session != null && !updates.ContainsKey(session)) updates.Add(session, phone);
         }
@@ -100,7 +122,7 @@ public sealed class PhoneSessions : IDisposable
             rejected = false;
             foreach (var update in updates.ToArray())
             {
-                if (_sessions.Any(other => other != update.Key
+                if (Active.Any(other => other != update.Key
                     && (other.Endpoint is { } old && SameAddress(old, update.Value) && !updates.ContainsKey(other)
                         || other.Endpoint == null && other.Running && other.Receiver.PhoneHost == update.Value.Host
                             && other.Receiver.PhonePort == update.Value.Port)))
@@ -129,9 +151,9 @@ public sealed class PhoneSessions : IDisposable
         if (assignments == null) return;
         foreach (var assignment in assignments)
         {
-            if (assignment == null || assignment.Slot is < 1 or > 4 || !Valid(assignment.Endpoint)) continue;
-            if (_sessions.Any(s => s.Endpoint?.Id == assignment.Endpoint.Id)) continue;
-            if (_sessions.Any(s => s.Endpoint is { } other && other.Host == assignment.Endpoint.Host && other.Port == assignment.Endpoint.Port)) continue;
+            if (assignment == null || assignment.Slot < 1 || assignment.Slot > _count || !Valid(assignment.Endpoint)) continue;
+            if (Active.Any(s => s.Endpoint?.Id == assignment.Endpoint.Id)) continue;
+            if (Active.Any(s => s.Endpoint is { } other && other.Host == assignment.Endpoint.Host && other.Port == assignment.Endpoint.Port)) continue;
             var session = Find(assignment.Slot);
             if (session.Endpoint == null && !session.Running)
             {
@@ -154,7 +176,7 @@ public sealed class PhoneSessions : IDisposable
 
     public void Dispose()
     {
-        foreach (var session in _sessions) session.Receiver.Dispose();
+        foreach (var session in _all) session.Receiver.Dispose();
     }
 
     private static bool Valid(PhoneEndpoint? phone) => phone != null && !string.IsNullOrWhiteSpace(phone.Id)

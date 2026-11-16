@@ -2,7 +2,7 @@
 
 Microphone audio is optional. There are two ways to use it:
 
-- **In OBS (30 or newer): no cable.** Add the **Streamsthetic phone microphone** source and pick the camera. Every camera (1–4) has its own sound.
+- **In OBS (30 or newer): no cable.** Add the **Streamsthetic phone microphone** source and pick the camera. Every camera has its own sound.
 - **Anywhere else** (Discord, Teams, listening on the PC): Streamsthetic plays **camera 1's** sound on a Windows playback output. It does not install a Windows microphone, so calling apps need a virtual audio cable.
 
 First, on the phone: **Settings > Streaming & power > Send the microphone to the PC**, then allow microphone access.
@@ -11,7 +11,7 @@ First, on the phone: **Settings > Streaming & power > Send the microphone to the
 
 1. Make sure the source is installed: setup adds it when OBS is installed. If you installed OBS later, open Streamsthetic on the PC, **Settings > Audio > OBS audio source**, and choose **Add to OBS**. Restart OBS if it was open.
 2. In OBS, under **Sources**, choose **+ → Streamsthetic phone microphone**.
-3. Under **Phone**, pick the camera whose phone you want (Camera 1 is Streamsthetic, Camera 2 is Streamsthetic 2, and so on).
+3. Under **Phone**, pick the camera whose phone you want (Camera 1 is Streamsthetic, Camera 2 is Streamsthetic 2, and so on; the list matches your [number of cameras](multiple-phones.md#use-more-than-four-phones)).
 4. Start streaming on that phone. The source's meter in the OBS **Audio Mixer** moves when you speak.
 
 ![Settings, Audio, with the OBS audio source row](images/pc/settings-audio.png){ loading=lazy }

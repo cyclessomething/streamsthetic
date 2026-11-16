@@ -336,13 +336,22 @@
                                 </Button.Style>
                             </Button>
                             <TextBlock Style="{StaticResource RowHint}" Margin="0,12,0,0"
-                                       Text="Extra cameras start at 1080p, 30 fps and 10 Mbps. Lower quality if video stutters or a phone gets warm. Microphone audio comes from camera 1." />
+                                       Text="Extra cameras start at 1080p, 30 fps and 10 Mbps. Lower quality if video stutters or a phone gets warm. Sound: in OBS each camera has its own phone microphone source; other apps get sound from camera 1 only." />
                             <WrapPanel Margin="0,16,0,0">
                                 <Button x:Name="PhoneForgetOneButton" Content="Disconnect and forget" Style="{StaticResource GhostButton}" Click="OnForgetSelectedPhone" IsEnabled="False"
                                         ToolTip="Disconnect this phone and remove its saved camera slot. Its pairing code stays valid." />
                                 <Button x:Name="PhonesForgetButton" Content="Forget all phones" Style="{StaticResource GhostButton}" Margin="10,0,0,0" Click="OnForgetPhones"
                                         ToolTip="Disconnect every phone and remove the saved camera slots. Pairing codes stay valid." />
                             </WrapPanel>
+                            <TextBlock Text="Number of cameras" Style="{StaticResource PanelTitle}" Margin="0,22,0,6" />
+                            <TextBlock x:Name="CameraCountHint" Style="{StaticResource RowHint}" TextWrapping="Wrap" Margin="0,0,0,8" />
+                            <WrapPanel>
+                                <ComboBox x:Name="CameraCountBox" Style="{StaticResource Dropdown}" Width="96" AutomationProperties.Name="Number of cameras"
+                                          SelectionChanged="OnCameraCountPicked" />
+                                <Button x:Name="CameraCountButton" Content="Change" Style="{StaticResource GhostButton}" Margin="10,0,0,0" IsEnabled="False"
+                                        Click="OnApplyCameraCount" ToolTip="Shows what changes, then asks Windows for administrator approval." />
+                            </WrapPanel>
+                            <TextBlock x:Name="CapacityText" Style="{StaticResource RowHint}" TextWrapping="Wrap" Margin="0,8,0,0" />
                         </StackPanel>
                     </TabItem>
                     <TabItem Header="Picture">
@@ -593,7 +602,7 @@
                                 <HeaderedContentControl.Header>
                                     <TextBlock Text="Requirements" Style="{StaticResource PanelTitle}" />
                                 </HeaderedContentControl.Header>
-                                <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap" Text="Phone: Android 11 or newer, with camera access allowed. Available resolutions and frame rates depend on the phone.&#10;&#10;PC: Windows 11. Install the Streamsthetic virtual camera when prompted.&#10;&#10;USB: a data cable and USB tethering enabled on the phone. USB debugging is needed only for the optional Advanced connection.&#10;&#10;Wi-Fi: both devices on the same local network. A strong 5 GHz connection is recommended; the PC can use Ethernet.&#10;&#10;Start with 1080p at 30 fps. Higher resolutions and frame rates need more processing power and bandwidth. If video stutters, reduce resolution, frame rate or bitrate.&#10;&#10;Video travels locally between your phone and PC, not through an internet service." />
+                                <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap" Text="Phone: Android 11 or newer, with camera access allowed. Available resolutions and frame rates depend on the phone.&#10;&#10;PC: Windows 11. Install the Streamsthetic virtual camera when prompted.&#10;&#10;Works with: the camera in OBS, Discord, Teams, Zoom, web browsers and other Windows apps that let you pick a camera. The phone's sound goes straight into OBS (the Streamsthetic phone microphone source); Discord, Teams, Zoom and other apps need a virtual audio cable for it.&#10;&#10;Not supported: Windows 10, Windows on ARM, Mac, Linux and iPhone.&#10;&#10;USB: a data cable and USB tethering enabled on the phone. USB debugging is needed only for the optional Advanced connection.&#10;&#10;Wi-Fi: both devices on the same local network. A strong 5 GHz connection is recommended; the PC can use Ethernet.&#10;&#10;Several phones: USB cables are steadier than Wi-Fi, because each phone gets its own connection. Phones, Number of cameras shows an estimate for this PC.&#10;&#10;Start with 1080p at 30 fps. Higher resolutions and frame rates need more processing power and bandwidth. If video stutters, reduce resolution, frame rate or bitrate.&#10;&#10;Video travels locally between your phone and PC, not through an internet service." />
                             </HeaderedContentControl>
                             </StackPanel>
                         </StackPanel>

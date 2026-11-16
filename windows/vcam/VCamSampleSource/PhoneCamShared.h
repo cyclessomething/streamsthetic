@@ -35,8 +35,12 @@ static_assert(sizeof(PhoneCamSharedHeader) == 64, "PhoneCamSharedHeader must sta
 
 #define PHONECAM_SHARED_SIZE (sizeof(PhoneCamSharedHeader) + (size_t)PHONECAM_MAX_WIDTH * PHONECAM_MAX_HEIGHT * 3 / 2)
 
+// How many cameras the component can provide. The owner picks how many are installed (1..this) in the PC app;
+// the PC and network run out long before 16 phones, and the app says so. Raising this needs a camera reinstall.
+#define PHONECAM_MAX_SLOTS 16
+
 // Slot 1 keeps the original identity so existing OBS scenes and installations work.
-// These helpers are shared by the media source and receiver; callers validate 1..4.
+// These helpers are shared by the media source and receiver; callers validate 1..PHONECAM_MAX_SLOTS.
 inline GUID PhoneCamSlotClsid(unsigned slot)
 {
     GUID id = { 0x31621596, 0x4208, 0x4d72, {0x90, 0x66, 0x1f, 0x95, 0x07, 0x07, 0x44, 0x23} };
@@ -45,7 +49,10 @@ inline GUID PhoneCamSlotClsid(unsigned slot)
 }
 inline std::wstring PhoneCamSourceClsid(unsigned slot)
 {
-    return L"{31621596-4208-4d72-9066-1f950707442" + std::to_wstring(slot + 2) + L"}";
+    // the last byte in hex: slot 1 is ...4423, slot 8 is ...442a, slot 16 is ...4432 (decimal text broke at slot 8)
+    wchar_t last[3];
+    swprintf_s(last, L"%02x", 0x23u + slot - 1);
+    return L"{31621596-4208-4d72-9066-1f95070744" + std::wstring(last) + L"}";
 }
 inline std::wstring PhoneCamSlotSuffix(unsigned slot)
 {

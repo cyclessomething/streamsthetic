@@ -16,7 +16,7 @@ public sealed class PreviewReader : IDisposable
     private readonly string _mappingName;
     public PreviewReader(int slot = 1)
     {
-        if (slot is < 1 or > 4) throw new ArgumentOutOfRangeException(nameof(slot));
+        if (slot < 1 || slot > CameraLimits.Max) throw new ArgumentOutOfRangeException(nameof(slot));
         _mappingName = @"Local\PhoneCamPreview" + (slot == 1 ? "" : slot.ToString());
     }
     private const int HeaderSize = 24; // UINT32 magic, width, height, (padding), LONG64 seq

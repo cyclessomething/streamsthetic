@@ -5,8 +5,9 @@
 //   PhoneCamReceiver.exe --wifi --code C                                  live over Wi-Fi, finds the phone itself
 //   PhoneCamReceiver.exe --host H --port P [--code C]                     live from a known address
 //   PhoneCamReceiver.exe --replay FILE [--realtime] [--no-camera]         decode a recorded PCM1 stream
-//   PhoneCamReceiver.exe --install-camera | --uninstall-camera            always-present system camera (admin)
-//   Add --slot 1..4 to select a camera (default 1); install/uninstall without --slot handles all four.
+//   PhoneCamReceiver.exe --install-camera [--count N] | --uninstall-camera  always-present system cameras (admin)
+//   Add --slot 1..16 to select a camera (default 1). --install-camera --count N installs cameras 1..N and removes any
+//   above N (default 4); --uninstall-camera without --slot removes every camera.
 //
 // By default it registers the PhoneCam camera for as long as it runs (--no-register if another process already
 // did, e.g. an installed system camera).
@@ -1196,6 +1197,7 @@ struct Options
     int rotate = -1;             // tests: turn the picture this much (degrees clockwise) instead of what the phone says
     bool gpuOnly = false;        // decode on the GPU from the start (tests)
     bool installCamera = false;
+    unsigned cameraCount = 4;    // --count N with --install-camera: install cameras 1..N, remove the ones above
     std::wstring audioDevice;    // --audio-device NAME: play the phone microphone here ("default" = default output; empty = not at all)
     bool listAudio = false;      // --list-audio: print the audio outputs and exit
     bool uninstallCamera = false;
@@ -1227,9 +1229,11 @@ Options ParseArgs(int argc, wchar_t** argv)
         else if (a == L"--slot")
         {
             std::wstring value = next();
-            if (value.size() != 1 || value[0] < L'1' || value[0] > L'4')
-                throw std::runtime_error("--slot expects 1, 2, 3 or 4");
-            o.slot = unsigned(value[0] - L'0');
+            wchar_t* end = nullptr;
+            auto slot = wcstoul(value.c_str(), &end, 10);
+            if (value.empty() || *end || slot < 1 || slot > PHONECAM_MAX_SLOTS)
+                throw std::runtime_error("--slot expects a camera number from 1 to 16");
+            o.slot = unsigned(slot);
             o.explicitSlot = true;
         }
         else if (a == L"--port") o.port = narrow(next());
@@ -1248,6 +1252,15 @@ Options ParseArgs(int argc, wchar_t** argv)
         else if (a == L"--cpu") o.cpuOnly = true;
         else if (a == L"--gpu") o.gpuOnly = true;
         else if (a == L"--install-camera") o.installCamera = true;
+        else if (a == L"--count")
+        {
+            std::wstring value = next();
+            wchar_t* end = nullptr;
+            auto count = wcstoul(value.c_str(), &end, 10);
+            if (value.empty() || *end || count < 1 || count > PHONECAM_MAX_SLOTS)
+                throw std::runtime_error("--count expects a number of cameras from 1 to 16");
+            o.cameraCount = unsigned(count);
+        }
         else if (a == L"--uninstall-camera") o.uninstallCamera = true;
         else if (a == L"--scale-to")
         {
@@ -1291,12 +1304,15 @@ int Run(const Options& options)
 
     if (options.installCamera || options.uninstallCamera)
     {
+        // install: exactly cameras 1..count (an explicit --slot installs just that one); uninstall: every camera
         unsigned first = options.explicitSlot ? options.slot : 1;
-        unsigned last = options.explicitSlot ? options.slot : 4;
+        unsigned last = options.explicitSlot ? options.slot : PHONECAM_MAX_SLOTS;
         for (unsigned slot = first; slot <= last; slot++)
         {
+            bool wanted = options.installCamera && (options.explicitSlot || slot <= options.cameraCount);
+            if (!wanted && !options.explicitSlot && !SystemCameraInstalled(slot)) continue; // never installed: nothing to remove
             auto system = CreatePhoneCam(true, slot);
-            if (options.installCamera)
+            if (wanted)
             {
                 THROW_IF_FAILED(system->Start(nullptr));
                 SetSystemCameraMarker(true, slot);

@@ -49,7 +49,7 @@
                                 skin:Skin.SectionBrush="{DynamicResource Section3Brush}" skin:Skin.PanelFill="{DynamicResource Panel3Brush}" skin:Skin.Glyph="{DynamicResource Icon3}">
             <HeaderedContentControl.Header><TextBlock Text="Use your camera" Style="{StaticResource PanelTitle}" /></HeaderedContentControl.Header>
             <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap"
-                       Text="In OBS or your video app, choose Streamsthetic (Windows Virtual Camera). Add more phones from the Phones tab; they appear as Streamsthetic 2, 3 and 4." />
+                       Text="In OBS, Discord, Teams, Zoom or a browser, choose Streamsthetic (Windows Virtual Camera). Add more phones from the Phones tab; they appear as Streamsthetic 2, 3 and so on. The phone's sound goes straight into OBS; other apps need a virtual audio cable for it." />
         </HeaderedContentControl>
         <TextBlock Style="{StaticResource RowHint}" Margin="0,0,0,14"
                    Text="USB debugging is an optional alternative under Connection, Advanced. It is not needed for the USB connection described above." />

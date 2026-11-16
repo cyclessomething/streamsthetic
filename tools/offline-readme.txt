@@ -67,17 +67,26 @@ REQUIREMENTS
   Closing the PC window leaves Streamsthetic running when
   "Keep running in the tray when I close the window" is enabled.
 
-  Multiple phones (up to four)
+  Multiple phones (4 cameras to start, up to 16)
     Scan the same PC QR code on each phone, then press Start on each phone.
     In the PC app, open Phones > Find phones. Select a phone, then Connect selected phone.
     Repeat for additional phones. Select a camera row to preview it or change its settings.
 
     Each phone has its own Windows camera: Streamsthetic, Streamsthetic 2, Streamsthetic 3
-    or Streamsthetic 4. Windows adds "(Windows Virtual Camera)" to these names.
+    and so on. Windows adds "(Windows Virtual Camera)" to these names.
     Add each camera as a separate OBS video source. Stop all cameras stops every connection.
+    For more than 4 phones: Phones > Number of cameras. It shows an estimate for your PC,
+    explains what changes, then asks Windows for administrator approval.
 
-    Start with 1080p at 30 fps on additional phones. If video stutters, lower the bitrate,
-    frame rate or resolution. Performance depends on the phones, PC and local network.
+    USB cables are steadier than Wi-Fi: each phone gets its own connection instead of
+    sharing the router. Start with 1080p at 30 fps on additional phones. If video stutters,
+    lower the bitrate, frame rate or resolution.
+
+  Works with
+    The camera: OBS, Discord, Teams, Zoom, web browsers and other Windows camera apps.
+    The phone's sound: straight into OBS 30 or newer (no cable). Discord, Teams, Zoom and
+    other apps need a virtual audio cable such as VB-Cable for it.
+    Not supported: Windows 10, Windows on ARM, Mac, Linux and iPhone.
 
   Phone microphone in OBS
     In the phone app, turn on Settings > Streaming & power > Send the microphone to the PC.

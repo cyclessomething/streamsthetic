@@ -8,6 +8,7 @@
 #define STREAMSTHETIC_AUDIO_MAGIC 0x31445541u /* "AUD1" */
 #define STREAMSTHETIC_AUDIO_RATE 48000u
 #define STREAMSTHETIC_AUDIO_RING 96000u /* samples: 2 seconds */
+#define STREAMSTHETIC_MAX_CAMERAS 16 /* windows/vcam PhoneCamShared.h PHONECAM_MAX_SLOTS */
 #define STREAMSTHETIC_AUDIO_NAME L"Local\\StreamstheticAudio%u"
 
 typedef struct StreamstheticSharedAudio

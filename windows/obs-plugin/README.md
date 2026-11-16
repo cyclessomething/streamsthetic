@@ -6,7 +6,7 @@ microphone in OBS directly: no virtual audio cable, no driver.
 ## Use
 
 1. In the phone app, turn on **Settings > Streaming & power > Send the microphone to the PC**.
-2. In OBS, choose **Sources > + > Streamsthetic phone microphone**, then pick the camera (1 to 4) whose phone you want.
+2. In OBS, choose **Sources > + > Streamsthetic phone microphone**, then pick the camera whose phone you want (as many as Streamsthetic has, up to 16).
 3. Sound arrives while that phone streams.
 
 The Streamsthetic installer adds the plugin when OBS is installed. If OBS is installed later, open Streamsthetic,

@@ -23,7 +23,7 @@ $libobs = (Resolve-Path (Join-Path $headers 'libobs')).Path
 $steps = @(
     "cl /nologo /c /O2 /W4 /WX /wd4201 /MD /I`"$here`" /I`"$libobs`" `"$here\streamsthetic-mic.c`" /Fo`"$out\streamsthetic-mic.obj`"",
     "lib /nologo /def:`"$here\obs.def`" /machine:x64 /out:`"$out\obs.lib`"",
-    "link /nologo /dll /out:`"$out\streamsthetic-mic.dll`" `"$out\streamsthetic-mic.obj`" `"$out\obs.lib`" kernel32.lib"
+    "link /nologo /dll /out:`"$out\streamsthetic-mic.dll`" `"$out\streamsthetic-mic.obj`" `"$out\obs.lib`" kernel32.lib advapi32.lib"
 )
 $script = Join-Path $out 'build.cmd'
 Set-Content -LiteralPath $script -Encoding ASCII -Value (@("@call `"$vcvars`" >nul") + ($steps | ForEach-Object { "$_ || exit /b 1" }))

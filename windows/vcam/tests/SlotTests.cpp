@@ -21,12 +21,28 @@ int wmain(int argc, wchar_t** argv)
         if (!module) throw HRESULT_FROM_WIN32(GetLastError());
         auto factory = reinterpret_cast<HRESULT (STDAPICALLTYPE*)(REFCLSID, REFIID, void**)>(GetProcAddress(module, "DllGetClassObject"));
         Require(factory != nullptr);
+        // every camera the component can provide; slots 8+ end in hex letters (...442a), which the old text helper broke
+        static_assert(PHONECAM_MAX_SLOTS == 16, "update the expected identities below");
         const wchar_t* expectedIds[] = {
-            L"{31621596-4208-4d72-9066-1f9507074423}", L"{31621596-4208-4d72-9066-1f9507074424}",
-            L"{31621596-4208-4d72-9066-1f9507074425}", L"{31621596-4208-4d72-9066-1f9507074426}" };
-        const wchar_t* expectedMaps[] = { L"Global\\PhoneCamFrame", L"Global\\PhoneCamFrame2", L"Global\\PhoneCamFrame3", L"Global\\PhoneCamFrame4" };
-        ComPtr<IMFMediaSource> sources[4];
-        for (unsigned slot = 1; slot <= 4; ++slot)
+            L"{31621596-4208-4d72-9066-1f9507074423}",
+            L"{31621596-4208-4d72-9066-1f9507074424}",
+            L"{31621596-4208-4d72-9066-1f9507074425}",
+            L"{31621596-4208-4d72-9066-1f9507074426}",
+            L"{31621596-4208-4d72-9066-1f9507074427}",
+            L"{31621596-4208-4d72-9066-1f9507074428}",
+            L"{31621596-4208-4d72-9066-1f9507074429}",
+            L"{31621596-4208-4d72-9066-1f950707442a}",
+            L"{31621596-4208-4d72-9066-1f950707442b}",
+            L"{31621596-4208-4d72-9066-1f950707442c}",
+            L"{31621596-4208-4d72-9066-1f950707442d}",
+            L"{31621596-4208-4d72-9066-1f950707442e}",
+            L"{31621596-4208-4d72-9066-1f950707442f}",
+            L"{31621596-4208-4d72-9066-1f9507074430}",
+            L"{31621596-4208-4d72-9066-1f9507074431}",
+            L"{31621596-4208-4d72-9066-1f9507074432}" };
+        const wchar_t* expectedMaps[] = { L"Global\\PhoneCamFrame", L"Global\\PhoneCamFrame2", L"Global\\PhoneCamFrame3", L"Global\\PhoneCamFrame4", L"Global\\PhoneCamFrame5", L"Global\\PhoneCamFrame6", L"Global\\PhoneCamFrame7", L"Global\\PhoneCamFrame8", L"Global\\PhoneCamFrame9", L"Global\\PhoneCamFrame10", L"Global\\PhoneCamFrame11", L"Global\\PhoneCamFrame12", L"Global\\PhoneCamFrame13", L"Global\\PhoneCamFrame14", L"Global\\PhoneCamFrame15", L"Global\\PhoneCamFrame16" };
+        ComPtr<IMFMediaSource> sources[PHONECAM_MAX_SLOTS];
+        for (unsigned slot = 1; slot <= PHONECAM_MAX_SLOTS; ++slot)
         {
             GUID expected;
             Check(CLSIDFromString(expectedIds[slot - 1], &expected));
@@ -63,7 +79,7 @@ int wmain(int argc, wchar_t** argv)
             Require(portrait);
             std::wcout << L"PASS slot " << slot << L": distinct source identity and 12 video formats\n";
         }
-        for (unsigned i = 0; i < 4; ++i)
+        for (unsigned i = 0; i < PHONECAM_MAX_SLOTS; ++i)
         {
             for (unsigned j = 0; j < i; ++j) Require(sources[i].Get() != sources[j].Get());
             Check(sources[i]->Shutdown());
@@ -71,6 +87,7 @@ int wmain(int argc, wchar_t** argv)
         }
         ComPtr<IClassFactory> unknown;
         Require(FAILED(factory(GUID_NULL, IID_PPV_ARGS(&unknown))));
+        Require(FAILED(factory(PhoneCamSlotClsid(PHONECAM_MAX_SLOTS + 1), IID_PPV_ARGS(&unknown))));
         FreeLibrary(module);
         MFShutdown();
         CoUninitialize();

@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $testDir = Join-Path ([IO.Path]::GetTempPath()) ('streamsthetic-preview-timing-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testDir | Out-Null
-$includes = ('PreviewReader.cs', 'CameraUsers.cs' | ForEach-Object {
+$includes = ('CameraLimits.cs', 'PreviewReader.cs', 'CameraUsers.cs' | ForEach-Object {
     '<Compile Include="' + [Security.SecurityElement]::Escape((Join-Path $root "windows/app/$_")) + '" />'
 }) -join "`n"
 @"

@@ -54,7 +54,7 @@ public partial class MainWindow
             if (_extraDefaults.Remove(phone.Slot)) phone.Receiver.SendSettings("w=1920;h=1080;fps=30;mbps=10");
             if (phone.Slot == _selectedSlot) ShowPhoneSettings(settings);
         });
-        foreach (var phone in _sessions.All)
+        foreach (var phone in _sessions.Every) // all 16: cameras can be added later
         {
             phone.Receiver.CannotKeepUp += () => OnPhoneUi(() => LowerPhoneQuality(phone));
             phone.Receiver.AppReadsSlower += (reads, sent) => OnPhoneUi(() =>
@@ -66,6 +66,101 @@ public partial class MainWindow
         RefreshPhoneRows();
         _phoneReconnectTimer.Tick += (_, _) => ResumeRememberedPhones();
         if (!Environment.GetCommandLineArgs().Any(a => a is "--snapshot" or "--selftest")) _phoneReconnectTimer.Start();
+    }
+
+    // ---- Number of cameras: how many Streamsthetic cameras Windows has (1-16), with an estimate for this PC ----
+
+    private SystemCapacity? _capacity;
+    private bool _showingCameraCount;
+
+    /// <summary>Fills the Number of cameras section: the current count, the camera names and the estimate for this PC.</summary>
+    private void ShowCameraCount()
+    {
+        if (CameraCountBox == null) return;
+        _showingCameraCount = true;
+        try
+        {
+            if (CameraCountBox.Items.Count == 0)
+                for (var n = 1; n <= CameraSetup.MaxCameras; n++) CameraCountBox.Items.Add(n);
+            var count = _sessions.Count;
+            CameraCountBox.SelectedItem = count;
+            CameraCountHint.Text = (count == 1 ? "Windows has 1 Streamsthetic camera" :
+                $"Windows has {count} Streamsthetic cameras: Streamsthetic, Streamsthetic 2 to Streamsthetic {count}") +
+                ". Each phone needs its own camera.";
+            CameraCountButton.IsEnabled = false; // nothing to change until another number is picked
+            _capacity ??= SystemCapacity.Measure();
+            CapacityText.Text = $"This PC: {_capacity.Summary}.\n{_capacity.Recommendation} USB cables are steadier than Wi-Fi: each phone gets its own connection instead of sharing the router.";
+        }
+        finally { _showingCameraCount = false; }
+    }
+
+    /// <summary>Windows may have changed the cameras while the app was in the background (setup, another copy of the
+    /// install script): follow the real number when the window comes back.</summary>
+    private void SyncCameraCount()
+    {
+        if (_applyingCameraCount) return;
+        var installed = CameraSetup.InstalledCount();
+        if (installed <= 0 || installed == _sessions.Count) return;
+        _sessions.Count = installed;
+        if (_selectedSlot > _sessions.Count) SelectPhone(1);
+        RefreshPhoneRows();
+        ShowCameraCount();
+    }
+
+    private bool _applyingCameraCount;
+
+    private void OnCameraCountPicked(object sender, SelectionChangedEventArgs e)
+    {
+        if (_showingCameraCount || CameraCountBox.SelectedItem is not int picked) return;
+        CameraCountButton.IsEnabled = picked != _sessions.Count;
+    }
+
+    private async void OnApplyCameraCount(object sender, RoutedEventArgs e)
+    {
+        if (CameraCountBox.SelectedItem is not int wanted || wanted == _sessions.Count) return;
+        var current = _sessions.Count;
+        var capacity = _capacity ??= SystemCapacity.Measure();
+        string Names(int from, int to) => from == to ? $"Streamsthetic {from}" : $"Streamsthetic {from} to Streamsthetic {to}";
+        var lines = new List<string>();
+        if (wanted > current)
+        {
+            lines.Add($"Adds {Names(current + 1, wanted)} to the camera list of every video app.");
+            lines.Add("Every phone you connect adds work for this PC and 10 to 20 Mbps of network traffic (up to 60 Mbps at 4K). Phones get warm while streaming.");
+            if (wanted > capacity.UsbPhones)
+                lines.Add($"This is more than the estimate for this PC ({capacity.UsbPhones} on USB cables, {capacity.WifiPhones} on Wi-Fi). With that many phones streaming, video may stutter: lower the resolution, frame rate or bitrate of the extra cameras if it does.");
+            else if (wanted > capacity.WifiPhones)
+                lines.Add($"Over Wi-Fi, more than {capacity.WifiPhones} phones will probably stutter on this PC. Connect the extra phones with USB cables.");
+            lines.Add("USB cables are steadier than Wi-Fi: each phone gets its own connection instead of sharing the router.");
+        }
+        else
+        {
+            lines.Add($"Removes {Names(wanted + 1, current)}.");
+            var affected = _sessions.All.Where(p => p.Slot > wanted && p.Endpoint != null).Select(p => p.Name).ToArray();
+            if (affected.Length > 0) lines.Add($"Disconnects and forgets {string.Join(", ", affected)}.");
+            lines.Add("OBS scenes and other apps that use those cameras will show nothing until you choose another camera.");
+        }
+        lines.Add("Windows will ask for administrator approval. Reopen video apps afterwards so they see the change.");
+        var heavy = wanted > capacity.UsbPhones;
+        var answer = MessageBox.Show(this, string.Join("\n\n", lines), $"Change to {wanted} camera{(wanted == 1 ? "" : "s")}?",
+            MessageBoxButton.OKCancel, heavy ? MessageBoxImage.Warning : MessageBoxImage.Question, MessageBoxResult.Cancel);
+        if (answer != MessageBoxResult.OK) { ShowCameraCount(); return; }
+
+        CameraCountButton.IsEnabled = false;
+        _applyingCameraCount = true;
+        // phones on cameras that are about to disappear stop first
+        foreach (var phone in _sessions.All.Where(p => p.Slot > wanted)) phone.Receiver.Stop();
+        PhonesNote.Text = "Changing the number of cameras… approve the Windows permission prompt.";
+        var ok = await CameraSetup.ApplyAsync(wanted);
+        _applyingCameraCount = false;
+        var installed = CameraSetup.InstalledCount();
+        if (installed > 0) _sessions.Count = installed;
+        if (_selectedSlot > _sessions.Count) SelectPhone(1);
+        SaveSettings(CurrentSettings());
+        RefreshPhoneRows();
+        ShowCameraCount();
+        PhonesNote.Text = ok
+            ? $"Windows now has {installed} Streamsthetic camera{(installed == 1 ? "" : "s")}. Reopen video apps to see the change."
+            : $"The number of cameras was not changed (Windows has {installed}). If you declined the Windows prompt, choose Change again.";
     }
 
     private async void ResumeRememberedPhones()
@@ -118,10 +213,11 @@ public partial class MainWindow
     private void RefreshPhoneRows()
     {
         if (PhonesList == null || PhoneForgetOneButton == null) return;
+        if (CameraCountBox != null && (CameraCountBox.Items.Count == 0 || !CameraCountButton.IsEnabled && CameraCountBox.SelectedItem is int shown && shown != _sessions.Count)) ShowCameraCount();
         _refreshingPhones = true;
         try
         {
-            if (PhonesList.Items.Count != 4)
+            if (PhonesList.Items.Count != _sessions.Count)
             {
                 PhonesList.Items.Clear();
                 foreach (var phone in _sessions.All) PhonesList.Items.Add(new ListBoxItem { Tag = phone.Slot });
@@ -217,7 +313,7 @@ public partial class MainWindow
         if (AvailablePhones.SelectedItem is not ListBoxItem { Tag: PhoneEndpoint endpoint })
         { PhonesNote.Text = "Find phones and select one first."; return; }
         var phone = _sessions.Assign(endpoint);
-        if (phone == null) { PhonesNote.Text = "All four camera slots are assigned. Disconnect and forget a phone to free a slot."; return; }
+        if (phone == null) { PhonesNote.Text = $"All {_sessions.Count} cameras have a phone. Add cameras under Number of cameras, or disconnect and forget a phone."; return; }
         if (phone.Slot == 1)
         {
             WifiOption.IsChecked = true;
@@ -254,7 +350,7 @@ public partial class MainWindow
             { PhonesNote.Text = "Choose Wi-Fi in Connection and enter the six-digit code shared by your phones."; return; }
             if (!CameraInstalled(phone.Slot))
             {
-                PhonesNote.Text = "Install the updated Streamsthetic camera component to enable all four cameras.";
+                PhonesNote.Text = $"Windows does not have camera {phone.Slot} yet. Approve the Windows prompt to install the Streamsthetic cameras.";
                 if (auto) return;
                 if (!await InstallCameraAsync() || !CameraInstalled(phone.Slot)) return;
             }

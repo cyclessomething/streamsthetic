@@ -1,11 +1,20 @@
 # Camera setup (asks for administrator approval): installs or updates the Streamsthetic cameras.
 # Safe for any Windows user name, including names with an apostrophe (e.g. "Sam's PC"): the elevated steps are passed
 # encoded, not as a quoted command line (a quote in the path broke the old version and nothing was installed).
+# -Count N: how many cameras to have (1-16). Without it, keep the number installed now (4 on a first install).
+param([ValidateRange(1, 16)][int]$Count = 0)
 $ErrorActionPreference = 'Continue'
 . (Join-Path $PSScriptRoot 'install-preflight.ps1')
 $source = Join-Path $PSScriptRoot 'vcam\VCamSampleSource.dll'
 $receiver = Join-Path $PSScriptRoot 'StreamstheticReceiver.exe'
-$clsidKeys = 3..6 | ForEach-Object { 'HKLM:\SOFTWARE\Classes\CLSID\{31621596-4208-4D72-9066-1F950707442' + $_ + '}' }
+# every camera the component can provide (the DLL registers all 16 COM classes; only -Count of them become cameras)
+$clsidKeys = 0..15 | ForEach-Object { 'HKLM:\SOFTWARE\Classes\CLSID\{31621596-4208-4D72-9066-1F95070744' + ('{0:X2}' -f (0x23 + $_)) + '}' }
+$markerName = { param($slot) if ($slot -eq 1) { 'SystemCamera' } else { 'SystemCamera' + $slot } }
+$installedMarkers = Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\PhoneCam' -ErrorAction SilentlyContinue
+if ($Count -eq 0) {
+    $Count = @(1..16 | Where-Object { $installedMarkers.(& $markerName $_) -eq 1 }).Count
+    if ($Count -lt 1) { $Count = 4 }
+}
 $log = Join-Path $env:TEMP 'streamsthetic-install-camera.txt'
 Remove-Item $log -ErrorAction SilentlyContinue
 
@@ -26,14 +35,14 @@ try {
     Invoke-StreamstheticNativeStep -FilePath "$env:WINDIR\System32\icacls.exe" -Arguments @('C:\ProgramData\PhoneCam\vcam', '/grant', '*S-1-5-19:(OI)(CI)RX', '*S-1-5-18:(OI)(CI)RX', '/T', '/Q') -Stage 'camera file permissions' -LogPath '{{LOG}}'
     Invoke-StreamstheticNativeStep -FilePath "$env:WINDIR\System32\regsvr32.exe" -Arguments @('/s', 'C:\ProgramData\PhoneCam\vcam\VCamSampleSource.dll') -Stage 'camera COM registration' -LogPath '{{LOG}}'
     Start-Service FrameServer, FrameServerMonitor -ErrorAction SilentlyContinue
-    Invoke-StreamstheticNativeStep -FilePath '{{RECEIVER}}' -Arguments @('--install-camera') -Stage 'virtual camera registration' -LogPath '{{LOG}}'
+    Invoke-StreamstheticNativeStep -FilePath '{{RECEIVER}}' -Arguments @('--install-camera', '--count', '{{COUNT}}') -Stage 'virtual camera registration' -LogPath '{{LOG}}'
 }
 catch { $exitCode = 1; ($_ | Out-String) | Add-Content -LiteralPath '{{LOG}}' -Encoding UTF8 }
 finally { Start-Service FrameServer, FrameServerMonitor -ErrorAction SilentlyContinue }
 exit $exitCode
 '@
 $helper = Join-Path $PSScriptRoot 'install-preflight.ps1'
-$steps = $template.Replace('{{SOURCE}}', $source.Replace("'", "''")).Replace('{{RECEIVER}}', $receiver.Replace("'", "''")).Replace('{{LOG}}', $log.Replace("'", "''")).Replace('{{HELPER}}', $helper.Replace("'", "''"))
+$steps = $template.Replace('{{SOURCE}}', $source.Replace("'", "''")).Replace('{{RECEIVER}}', $receiver.Replace("'", "''")).Replace('{{LOG}}', $log.Replace("'", "''")).Replace('{{HELPER}}', $helper.Replace("'", "''")).Replace('{{COUNT}}', [string]$Count)
 $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($steps))
 try {
     $worker = Start-Process powershell -Verb RunAs -Wait -PassThru -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded -ErrorAction Stop
@@ -47,13 +56,13 @@ try {
 $missing = @($clsidKeys | Where-Object { -not (Test-Path $_) })
 $installed = 'C:\ProgramData\PhoneCam\vcam\VCamSampleSource.dll'
 $matches = (Test-Path $installed) -and ((Get-FileHash -LiteralPath $source).Hash -eq (Get-FileHash -LiteralPath $installed).Hash)
-$markers = @('SystemCamera', 'SystemCamera2', 'SystemCamera3', 'SystemCamera4' | Where-Object {
-    (Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\PhoneCam' -ErrorAction SilentlyContinue).$_ -ne 1
-})
+$after = Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\PhoneCam' -ErrorAction SilentlyContinue
+# cameras 1..Count must exist, the ones above Count must be gone
+$markers = @(1..16 | Where-Object { ($after.(& $markerName $_) -eq 1) -ne ($_ -le $Count) })
 if ($worker.ExitCode -eq 0 -and $missing.Count -eq 0 -and $matches -and $markers.Count -eq 0) {
-    Write-Output 'All four Streamsthetic cameras are installed. Open Streamsthetic to connect a phone.'
+    Write-Output "$Count Streamsthetic camera$(if ($Count -ne 1) { 's are' } else { ' is' }) installed. Open Streamsthetic to connect a phone."
 } else {
-    Add-Content -LiteralPath $log -Value "Verification: worker exit=$($worker.ExitCode); missing COM registrations=$($missing.Count); component matches=$matches; missing camera markers=$($markers.Count)" -Encoding UTF8
+    Add-Content -LiteralPath $log -Value "Verification: worker exit=$($worker.ExitCode); missing COM registrations=$($missing.Count); component matches=$matches; camera markers not matching $Count cameras=$($markers.Count)" -Encoding UTF8
     Write-Warning "Camera setup did not finish. Review the Windows error in $log before retrying."
     if (Test-Path $log) { Write-Warning ('Details: ' + (Get-Content $log -Raw)) }
     exit 1

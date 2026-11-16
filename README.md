@@ -1,6 +1,6 @@
 # Streamsthetic
 
-Use an Android phone as a camera in Windows apps such as OBS and Discord. Connect over USB tethering or your local network, with up to four independent phone sessions and camera outputs.
+Use an Android phone as a camera in Windows apps such as OBS and Discord. Connect over USB tethering or your local network, with independent phone sessions and camera outputs.
 
 **Testing release: 0.2.6.** This is an early beta, not a claim of compatibility with every phone or PC. Windows 11 x64 and Android 11 or later are required. Windows on ARM, Windows 10, iPhone and macOS are not supported by this release.
 
@@ -33,7 +33,7 @@ Streaming stays between the phone and PC over the cable or local network. It doe
 
 ## What is included
 
-- Up to four phone sessions, each with a separate Windows camera output.
+- Several phones at once, each with its own Windows camera: 4 cameras to start, up to 16 (**Phones › Number of cameras** estimates what your PC can handle). The camera works in OBS, Discord, Teams, Zoom and browsers; the phone's sound goes straight into OBS, and other apps need a virtual audio cable. See [What works with Streamsthetic](https://cyclessomething.github.io/streamsthetic/compatibility/).
 - A live PC preview, saved phone assignments and optional automatic reconnection.
 - Resolution, frame-rate and bitrate controls, plus supported camera adjustments.
 - Automatic orientation or manual rotation, and mirroring.

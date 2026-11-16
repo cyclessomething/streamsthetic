@@ -62,6 +62,7 @@ nav:
       - Install: install.md
       - Connect your phone: connect.md
       - OBS and other video apps: obs-and-video-apps.md
+      - What works with it: compatibility.md
   - Using the apps:
       - Windows app: windows.md
       - Android app: android.md

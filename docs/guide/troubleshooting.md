@@ -24,9 +24,13 @@ Only proceed past an unsigned-app warning for a download you trust. Do not insta
 
 See [connection steps](connect.md) and [multiple phones](multiple-phones.md). Google Play services are needed for QR scanning, not manual-code pairing.
 
+## The phone's sound is missing in Discord, Teams or Zoom
+
+That is expected: those apps cannot see the phone as a microphone. Use a virtual audio cable, or your PC's own microphone. Only OBS gets the phone's sound directly. See [What works with Streamsthetic](compatibility.md).
+
 ## Camera missing or picture black in another app
 
-1. Complete camera installation, then close and reopen the video app.
+1. Complete camera installation, then close and reopen the video app. After changing the number of cameras, reopen video apps too.
 2. Select the matching Streamsthetic camera output and verify the phone is streaming.
 3. Check Windows **Settings → Privacy & security → Camera**, including access for desktop apps.
 4. In OBS, return to a supported resolution/frame rate or **Device Default**. See [video-app setup](obs-and-video-apps.md).
@@ -36,7 +40,7 @@ If the PC says its preview is paused because another app uses the camera, check 
 ## Video stutters, heats the phone or looks wrong
 
 1. Start with 1080p at 30 fps; lower bitrate, resolution or frame rate if needed.
-2. Try USB tethering or improve the local Wi-Fi connection. Close unnecessary processing-heavy apps.
+2. Try USB tethering or improve the local Wi-Fi connection. Close unnecessary processing-heavy apps. With several phones, move as many as you can to USB cables and compare with the estimate under **Phones › Number of cameras**.
 3. Check [Android streaming and power settings](android.md): thermal adjustments and idle shutoff can change or stop streaming.
 4. For rotation, mirroring or cropping questions, check [camera controls](camera-controls.md). For missing microphone audio, follow [audio setup](audio.md).
 

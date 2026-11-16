@@ -89,7 +89,7 @@ STDAPI DllGetClassObject(_In_ REFCLSID rclsid, _In_ REFIID riid, _Outptr_ LPVOID
 	RETURN_HR_IF_NULL(E_POINTER, ppv);
 	*ppv = nullptr;
 
-	for (unsigned slot = 1; slot <= 4; ++slot)
+	for (unsigned slot = 1; slot <= PHONECAM_MAX_SLOTS; ++slot)
 	{
 		if (rclsid == PhoneCamSlotClsid(slot))
 			return winrt::make_self<ClassFactory>(slot)->QueryInterface(riid, ppv);
@@ -104,8 +104,9 @@ STDAPI DllRegisterServer()
 {
 	std::wstring exePath = wil::GetModuleFileNameW(_hModule).get();
 	WINTRACE(L"DllRegisterServer '%s'", exePath.c_str());
-    // Frame Server runs outside the user process: all four COM classes must be machine registered.
-    for (unsigned slot = 1; slot <= 4; ++slot)
+    // Frame Server runs outside the user process: every camera COM class must be machine registered. All
+    // PHONECAM_MAX_SLOTS are registered (harmless); only the cameras the owner chose are created (receiver --install-camera).
+    for (unsigned slot = 1; slot <= PHONECAM_MAX_SLOTS; ++slot)
     {
         auto clsid = GUID_ToStringW(PhoneCamSlotClsid(slot), false);
         std::wstring path = L"Software\\Classes\\CLSID\\" + clsid + L"\\InprocServer32";
@@ -121,7 +122,7 @@ STDAPI DllUnregisterServer()
 {
     // Missing slots are normal when uninstalling an older one-camera installation.
     LSTATUS firstError = ERROR_SUCCESS;
-    for (unsigned slot = 1; slot <= 4; ++slot)
+    for (unsigned slot = 1; slot <= PHONECAM_MAX_SLOTS; ++slot)
     {
         auto clsid = GUID_ToStringW(PhoneCamSlotClsid(slot), false);
         std::wstring path = L"Software\\Classes\\CLSID\\" + clsid;
