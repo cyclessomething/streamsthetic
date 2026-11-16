@@ -1,6 +1,6 @@
 # Use the Android app
 
-Streamsthetic 0.2.6 beta turns an Android 11+ phone into a camera for your Windows PC. Start with [Connect your phone](connect.md) if you have not paired it yet.
+Streamsthetic 0.2.7 beta turns an Android 11+ phone into a camera for your Windows PC. Start with [Connect your phone](connect.md) if you have not paired it yet.
 
 ## Find your way around
 

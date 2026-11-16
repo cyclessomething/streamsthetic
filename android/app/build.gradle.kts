@@ -13,8 +13,8 @@ android {
         applicationId = "com.phonecam"
         minSdk = 30
         targetSdk = 35
-        versionCode = 7
-        versionName = "0.2.6"
+        versionCode = 8
+        versionName = "0.2.7"
     }
 
     // Release signing: the owner's key lives outside the repository (Documents\Streamsthetic-signing, or the

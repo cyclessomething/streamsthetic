@@ -4,7 +4,7 @@ Turn your Android phone into a Windows camera. This guide takes you from install
 
 **New here?** [Install Streamsthetic](install.md), [connect your phone](connect.md), then [select it in OBS or another video app](obs-and-video-apps.md).
 
-This guide covers **0.2.6 (v0.2.6-beta.1)** on Windows 11 x64 and Android 11 or later. The current download is a testing release. See [requirements and installation](install.md) and [testing coverage](https://github.com/cyclessomething/streamsthetic/blob/main/docs/TESTING.md) before installing.
+This guide covers **0.2.7 (v0.2.7-beta.1)** on Windows 11 x64 and Android 11 or later. The current download is a testing release. See [requirements and installation](install.md) and [testing coverage](https://github.com/cyclessomething/streamsthetic/blob/main/docs/TESTING.md) before installing.
 
 ![The Streamsthetic PC app showing a live phone camera](images/pc/main-demo.png){ loading=lazy }
 

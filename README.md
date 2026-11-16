@@ -2,18 +2,18 @@
 
 Use an Android phone as a camera in Windows apps such as OBS and Discord. Connect over USB tethering or your local network, with independent phone sessions and camera outputs.
 
-**Testing release: 0.2.6.** This is an early beta, not a claim of compatibility with every phone or PC. Windows 11 x64 and Android 11 or later are required. Windows on ARM, Windows 10, iPhone and macOS are not supported by this release.
+**Testing release: 0.2.7.** This is an early beta, not a claim of compatibility with every phone or PC. Windows 11 x64 and Android 11 or later are required. Windows on ARM, Windows 10, iPhone and macOS are not supported by this release.
 
 ## Downloads
 
-[Release notes and all downloads — v0.2.6-beta.1](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.6-beta.1)
+[Release notes and all downloads — v0.2.7-beta.1](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.7-beta.1)
 
 | Download | Use |
 | --- | --- |
-| [Windows offline installer](https://github.com/cyclessomething/streamsthetic/releases/download/v0.2.6-beta.1/Streamsthetic-Setup-offline.exe) | Recommended Windows download. Includes the app runtime and USB tools. |
-| [Android APK](https://github.com/cyclessomething/streamsthetic/releases/download/v0.2.6-beta.1/Streamsthetic-phone.apk) | Install on the phone. |
-| [Offline package ZIP](https://github.com/cyclessomething/streamsthetic/releases/download/v0.2.6-beta.1/Streamsthetic-offline-package.zip) | Alternative bundle containing the Windows files and Android APK. |
-| [Release manifest](https://github.com/cyclessomething/streamsthetic/releases/download/v0.2.6-beta.1/release-manifest.json) | File sizes and SHA-256 checksums. |
+| [Windows offline installer](https://github.com/cyclessomething/streamsthetic/releases/download/v0.2.7-beta.1/Streamsthetic-Setup-offline.exe) | Recommended Windows download. Includes the app runtime and USB tools. |
+| [Android APK](https://github.com/cyclessomething/streamsthetic/releases/download/v0.2.7-beta.1/Streamsthetic-phone.apk) | Install on the phone. |
+| [Offline package ZIP](https://github.com/cyclessomething/streamsthetic/releases/download/v0.2.7-beta.1/Streamsthetic-offline-package.zip) | Alternative bundle containing the Windows files and Android APK. |
+| [Release manifest](https://github.com/cyclessomething/streamsthetic/releases/download/v0.2.7-beta.1/release-manifest.json) | File sizes and SHA-256 checksums. |
 
 The Windows installer is unsigned; Windows may display an unknown-publisher or SmartScreen warning. The Android APK is signed with the Streamsthetic release key. **Upgrading from 0.2.5 or earlier on Android:** uninstall the old app once first (it used a testing key), then install this one; pairing and app settings start fresh. Later updates install over it. Both are intended for testing. Download only from a source you trust and compare hashes with the release manifest.
 

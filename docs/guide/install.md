@@ -17,7 +17,7 @@ iPhone and macOS versions are not included in this release.
 
 ## Choose your downloads
 
-Open the [v0.2.6-beta.1 release](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.6-beta.1) and download these two files:
+Open the [v0.2.7-beta.1 release](https://github.com/cyclessomething/streamsthetic/releases/tag/v0.2.7-beta.1) and download these two files:
 
 | File | Install it on |
 | --- | --- |
